@@ -1630,7 +1630,11 @@ const noteText = (n) =>
             : t('Caja fuerte abierta: {item}', { item: t(SAFE_CONTENTS[n.out].name) })
           : n && n.k === 'safeClosed'
             ? t('La caja fuerte va cerrada a tu almacén: allí la abres o la vendes.')
-            : '';
+            : n && n.k === 'sinDinero'
+              ? n.paid > 0
+                ? t('No quedaba dinero para las trampas: solo se pagan {a} de {b}.', { a: money(n.paid), b: money(n.owed) })
+                : t('No quedaba dinero para las trampas: no se paga nada de los {b}.', { b: money(n.owed) })
+              : '';
 // «¡Colección Retro! +200 €» para quien la junta (o una pieza más)
 function setNote(n) {
   const v = app.view;

@@ -557,6 +557,8 @@ export const EN = {
   'Nuevo en tu álbum: {item}': 'New in your album: {item}',
   '{n} objetos nuevos en tu álbum': '{n} new items in your album',
   'Tu álbum': 'Your album',
+  'No quedaba dinero para las trampas: solo se pagan {a} de {b}.': 'No money left for the traps: only {a} of {b} is paid.',
+  'No quedaba dinero para las trampas: no se paga nada de los {b}.': 'No money left for the traps: none of the {b} is paid.',
   'Mis cupones': 'My coupons',
   'Privacidad y aviso legal': 'Privacy and legal notice',
   'Copiar': 'Copy',

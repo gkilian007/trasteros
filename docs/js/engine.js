@@ -996,14 +996,23 @@ function resolveValues(s) {
 
 // El que se lo lleva se queda con lo que vale algo y paga las trampas. Si con esto junta una colección
 // (3 piezas) cobra el premio al momento, y cada pieza más de esa colección, un poco más.
+// Nadie se queda con dinero negativo: las trampas se pagan con lo que quede y el resto se perdona
+// (owed: lo que costaban; paid: lo que se ha podido pagar).
 function giveUnit(owner, ids, values, noSets = false) {
   const before = setCounts(owner.items);
+  let owed = 0;
+  let paid = 0;
   ids.forEach((id, i) => {
     const v = values[i];
     if (v > 0) owner.items.push({ id, v });
-    else if (v < 0) owner.money += v; // las trampas se pagan
+    else if (v < 0) {
+      const pay = Math.min(-v, Math.max(0, owner.money));
+      owner.money -= pay;
+      owed += -v;
+      paid += pay;
+    }
   });
-  if (noSets) return { sets: [], bonus: 0 }; // carrera: las colecciones se cobran en el almacén
+  if (noSets) return { sets: [], bonus: 0, owed, paid }; // carrera: las colecciones se cobran en el almacén
   const after = setCounts(owner.items);
   const sets = [];
   for (const c in after) {
@@ -1015,7 +1024,7 @@ function giveUnit(owner, ids, values, noSets = false) {
   }
   const bonus = sets.reduce((t, x) => t + x.bonus, 0);
   owner.money += bonus;
-  return { sets, bonus };
+  return { sets, bonus, owed, paid };
 }
 
 // Caras automáticas al abrir el trastero
@@ -1057,18 +1066,21 @@ function closeAuction(s, now) {
       const com = r10(a.amount * COMMISSION);
       if (auct) auct.money += com;
       const g = giveUnit(w, s.unit.ids, values);
-      Object.assign(res, { winner: w.id, winnerName: w.name, price: a.amount, profit: total - a.amount, commission: com, bonus: g.bonus });
+      Object.assign(res, { winner: w.id, winnerName: w.name, price: a.amount, profit: total - a.amount + (g.owed - g.paid), commission: com, bonus: g.bonus });
+      if (g.owed > g.paid) notes.push({ k: 'sinDinero', owed: g.owed, paid: g.paid, who: w.id });
       g.sets.forEach((x) => notes.push({ k: 'coleccion', ...x, who: w.id }));
     } else if (auct) {
       const g = giveUnit(auct, s.unit.ids, values);
-      Object.assign(res, { winner: auct.id, winnerName: auct.name, price: 0, profit: total, free: true, bonus: g.bonus });
+      Object.assign(res, { winner: auct.id, winnerName: auct.name, price: 0, profit: total + (g.owed - g.paid), free: true, bonus: g.bonus });
+      if (g.owed > g.paid) notes.push({ k: 'sinDinero', owed: g.owed, paid: g.paid, who: auct.id });
       g.sets.forEach((x) => notes.push({ k: 'coleccion', ...x, who: auct.id }));
     }
   } else if (a.leader) {
     const owner = a.leader === 'team' ? s.team : s.rivals.find((r) => r.id === a.leader);
     owner.money -= a.amount;
     const g = giveUnit(owner, s.unit.ids, values, !!s.career);
-    Object.assign(res, { winner: a.leader, winnerName: a.leaderName, price: a.amount, profit: total - a.amount, bonus: g.bonus });
+    Object.assign(res, { winner: a.leader, winnerName: a.leaderName, price: a.amount, profit: total - a.amount + (g.owed - g.paid), bonus: g.bonus });
+    if (g.owed > g.paid) notes.push({ k: 'sinDinero', owed: g.owed, paid: g.paid, who: a.leader });
     g.sets.forEach((x) => notes.push({ k: 'coleccion', ...x, who: a.leader }));
   }
   s.results = res;

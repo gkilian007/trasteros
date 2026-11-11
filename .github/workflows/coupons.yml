@@ -1,0 +1,31 @@
+name: Cupones
+# Cada día baja de Tradedoubler los cupones en vigor y los publica en el juego (coupons.json).
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  cupones:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Bajar cupones
+        env:
+          TD_CLIENT_ID: ${{ secrets.TD_CLIENT_ID }}
+          TD_CLIENT_SECRET: ${{ secrets.TD_CLIENT_SECRET }}
+          TD_USERNAME: ${{ secrets.TD_USERNAME }}
+          TD_PASSWORD: ${{ secrets.TD_PASSWORD }}
+        run: node tools/coupons/fetch.mjs
+      - name: Publicar si han cambiado
+        run: |
+          if ! git diff --quiet -- docs/coupons.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -qm "Cupones al día" -- docs/coupons.json
+            git push
+          fi

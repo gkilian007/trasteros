@@ -1,0 +1,22 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'>
+  <rect width='512' height='512' rx='112' fill='#1b2433'/>
+  <rect x='76' y='92' width='360' height='340' rx='22' fill='#0e131b' stroke='#39465a' stroke-width='16'/>
+  <g>
+    <rect x='148' y='262' width='96' height='104' rx='10' fill='#c99a5b'/>
+    <rect x='148' y='350' width='96' height='16' rx='6' fill='#8a6233'/>
+    <rect x='182' y='262' width='28' height='36' fill='#e9dcbc' opacity='.6'/>
+    <rect x='268' y='262' width='96' height='104' rx='10' fill='#f4efe3' stroke='#ffc31f' stroke-width='10'/>
+    <circle cx='316' cy='306' r='20' fill='#ffc31f'/>
+    <circle cx='316' cy='306' r='9' fill='#fff6d0'/>
+  </g>
+  <g>
+    <rect x='84' y='100' width='344' height='138' fill='#66778d'/>
+    <rect x='84' y='112' width='344' height='6' fill='#7a8ba1'/>
+    <rect x='84' y='134' width='344' height='6' fill='#7a8ba1'/>
+    <rect x='84' y='156' width='344' height='6' fill='#7a8ba1'/>
+    <rect x='84' y='178' width='344' height='6' fill='#7a8ba1'/>
+    <rect x='84' y='200' width='344' height='6' fill='#7a8ba1'/>
+    <rect x='84' y='222' width='344' height='16' fill='#4f5e72'/>
+    <rect x='226' y='226' width='60' height='8' rx='4' fill='#39465a'/>
+  </g>
+</svg>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang='es'>
+  <head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1, viewport-fit=cover' />
+    <meta name='theme-color' content='#1b2433' />
+    <title>Trasteros · Privacidad y aviso legal</title>
+    <link rel='icon' href='icons/icon.svg' type='image/svg+xml' />
+    <style>
+      :root { color-scheme: dark; }
+      body { margin: 0; background: #1b2433; color: #f1ede4; font: 16px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      main { max-width: 720px; margin: 0 auto; padding: 20px 18px 60px; }
+      h1 { font-size: 1.5rem; margin: 8px 0 4px; }
+      h2 { font-size: 1.1rem; margin: 26px 0 6px; color: #ffc31f; }
+      p, li { color: #dfe4ec; overflow-wrap: anywhere; }
+      ul { padding-left: 20px; }
+      a { color: #ffc31f; }
+      .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .top a.back { margin-right: auto; }
+      .lang button { background: #222d3f; color: #f1ede4; border: 0; border-radius: 8px; padding: 6px 12px; font: inherit; font-weight: 700; }
+      .lang button[aria-pressed='true'] { background: #ffc31f; color: #2a1d00; }
+      .muted { color: #a6b1c2; font-size: 0.9rem; }
+      html.js [data-lang] { display: none; }
+      html.js.es [data-lang='es'], html.js.en [data-lang='en'] { display: block; }
+    </style>
+    <script>
+      (function () {
+        var l = (new URLSearchParams(location.search).get('lang') || '').toLowerCase();
+        if (l !== 'es' && l !== 'en') { try { l = localStorage.getItem('tr-lang'); } catch (e) {} }
+        if (l !== 'es' && l !== 'en') l = (navigator.language || 'es').slice(0, 2) === 'es' ? 'es' : 'en';
+        document.documentElement.className = 'js ' + l;
+        document.documentElement.lang = l;
+        window.setLegalLang = function (x) { document.documentElement.className = 'js ' + x; document.documentElement.lang = x; document.querySelectorAll('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.l === x)); }); };
+        document.addEventListener('DOMContentLoaded', function () { window.setLegalLang(l); });
+      })();
+    </script>
+  </head>
+  <body>
+    <main>
+      <div class='top'>
+        <a class='back' href='./'>← Trasteros</a>
+        <div class='lang' role='group' aria-label='Idioma / Language'>
+          <button data-l='es' onclick="setLegalLang('es')">ES</button>
+          <button data-l='en' onclick="setLegalLang('en')">EN</button>
+        </div>
+      </div>
+
+      <article data-lang='es' lang='es'>
+        <h1>Privacidad y aviso legal</h1>
+        <p class='muted'>Última actualización: 11 de noviembre de 2026</p>
+
+        <h2>1. Quién está detrás de Trasteros</h2>
+        <p>Trasteros es un juego de <strong>De Soto Creations LLC</strong>, sociedad de responsabilidad limitada registrada en el estado de Florida (Estados Unidos), con domicilio en 248 Bermuda Rd, Marco Island, Florida 34145, Estados Unidos.</p>
+        <p>Contacto: <a href='mailto:magic@melodyforme.com'>magic@melodyforme.com</a></p>
+
+        <h2>2. Qué es Trasteros y quién puede jugar</h2>
+        <p>Trasteros es un juego gratuito de subastas de trasteros a ciegas, para jugar solo o con amigos desde el móvil. El dinero del juego es ficticio: no se puede comprar, cobrar ni cambiar por dinero real, y no es un juego de apuestas.</p>
+        <p>Para jugar hay que tener <strong>14 años o más</strong>. Si tienes menos, necesitas el permiso de tu padre, madre o tutor.</p>
+
+        <h2>3. Qué datos usamos</h2>
+        <p>Trasteros no te pide que crees una cuenta y no recoge tu correo, tu teléfono ni tu ubicación.</p>
+        <ul>
+          <li><strong>Lo que se guarda en tu móvil.</strong> El nombre o apodo que escribes, tu personaje, tu progreso, tus récords, tu álbum, los cupones que has ganado y tus ajustes (idioma y sonido) se guardan solo en el almacenamiento de tu navegador. No los recibimos ni los guardamos en ningún servidor nuestro.</li>
+          <li><strong>Partidas con amigos.</strong> Cuando juegas en una sala, tu apodo, tu personaje y tus jugadas se envían en el momento a los demás jugadores de esa sala a través de Supabase, un servicio de mensajería en tiempo real. No guardamos las partidas.</li>
+          <li><strong>Alojamiento.</strong> La web está alojada en GitHub Pages (GitHub, Inc.). Como cualquier servidor web, GitHub puede registrar datos técnicos de la visita, como la dirección IP, por seguridad.</li>
+          <li><strong>Cookies y medición.</strong> Trasteros no usa cookies propias, ni herramientas de medición de visitas, ni publicidad dentro de la web.</li>
+        </ul>
+
+        <h2>4. Cupones y enlaces de afiliación</h2>
+        <p>Al ganar partidas puedes recibir cupones de descuento de tiendas. Son publicidad: los enlaces son de afiliación a través de la red Tradedoubler, y De Soto Creations LLC puede recibir una comisión si compras con ese código o enlace.</p>
+        <p>Si pulsas «Ir a la tienda», sales de Trasteros y entras en la web de la tienda pasando por Tradedoubler, que puede usar cookies para saber que la visita viene de Trasteros. No enviamos a la tienda ni a Tradedoubler tu apodo ni ningún dato de tus partidas. Lo que hagas en la web de la tienda se rige por su propia política de privacidad.</p>
+        <p>El descuento, sus condiciones y su caducidad los fija cada tienda. Los mostramos tal como nos los facilita, pero no podemos garantizar que la tienda los mantenga.</p>
+
+        <h2>5. Para qué usamos los datos y durante cuánto tiempo</h2>
+        <p>Solo para que el juego funcione: recordar tu progreso en tu móvil y que puedas jugar con otras personas. Lo guardado en tu móvil sigue ahí hasta que lo borres; puedes hacerlo en cualquier momento borrando los datos de este sitio en los ajustes de tu navegador.</p>
+
+        <h2>6. Proveedores y otros países</h2>
+        <p>De Soto Creations LLC y los proveedores mencionados (GitHub, Supabase y Tradedoubler) pueden tratar datos fuera de tu país, incluido Estados Unidos.</p>
+
+        <h2>7. Tus derechos</h2>
+        <p>Puedes pedirnos acceso a tus datos, su rectificación o su supresión, oponerte a su uso o pedir que se limite, escribiendo a <a href='mailto:magic@melodyforme.com'>magic@melodyforme.com</a>. Ten en cuenta que casi todo está solo en tu móvil y lo controlas tú. Si vives en España y crees que no hemos atendido bien tu petición, puedes reclamar ante la Agencia Española de Protección de Datos (<a href='https://www.aepd.es' rel='noopener'>www.aepd.es</a>).</p>
+
+        <h2>8. Propiedad y uso del juego</h2>
+        <p>El juego, su nombre, sus textos, sus imágenes, sus voces y su música pertenecen a De Soto Creations LLC o se usan con licencia. Puedes jugar libremente con fines personales; no está permitido copiar o revender el juego ni sus contenidos sin permiso.</p>
+        <p>Trasteros se ofrece tal cual, sin garantía de que esté siempre disponible o libre de errores. Nada de lo anterior limita los derechos que la ley de tu país te reconoce como consumidor.</p>
+
+        <h2>9. Cambios</h2>
+        <p>Si Trasteros cambia (por ejemplo, si se publica como aplicación con anuncios o compras), actualizaremos esta página antes y cambiaremos la fecha de arriba.</p>
+      </article>
+
+      <article data-lang='en' lang='en'>
+        <h1>Privacy and legal notice</h1>
+        <p class='muted'>Last updated: November 11, 2026</p>
+
+        <h2>1. Who is behind Trasteros</h2>
+        <p>Trasteros is a game by <strong>De Soto Creations LLC</strong>, a limited liability company registered in the State of Florida (United States), located at 248 Bermuda Rd, Marco Island, Florida 34145, United States.</p>
+        <p>Contact: <a href='mailto:magic@melodyforme.com'>magic@melodyforme.com</a></p>
+
+        <h2>2. What Trasteros is and who can play</h2>
+        <p>Trasteros is a free game about blind storage-unit auctions, to play alone or with friends on your phone. The money in the game is fictional: it cannot be bought, cashed out or exchanged for real money, and this is not a gambling game.</p>
+        <p>You must be <strong>14 or older</strong> to play. If you are younger, you need permission from a parent or guardian.</p>
+
+        <h2>3. What data we use</h2>
+        <p>Trasteros does not ask you to create an account and does not collect your email, phone number or location.</p>
+        <ul>
+          <li><strong>What is stored on your phone.</strong> The name or nickname you type, your character, your progress, your records, your album, the coupons you have won and your settings (language and sound) are stored only in your browser's storage. We do not receive them or keep them on any server of ours.</li>
+          <li><strong>Games with friends.</strong> When you play in a room, your nickname, your character and your moves are sent live to the other players in that room through Supabase, a real-time messaging service. We do not store the games.</li>
+          <li><strong>Hosting.</strong> The website is hosted on GitHub Pages (GitHub, Inc.). Like any web server, GitHub may log technical data about the visit, such as the IP address, for security.</li>
+          <li><strong>Cookies and analytics.</strong> Trasteros does not use its own cookies, analytics tools or advertising inside the website.</li>
+        </ul>
+
+        <h2>4. Coupons and affiliate links</h2>
+        <p>Discount coupons are currently shown only to people playing in Spanish, because the offers are for Spain. They are advertising: the links are affiliate links through the Tradedoubler network, and De Soto Creations LLC may earn a commission if you buy with that code or link.</p>
+        <p>If you tap "Go to the shop", you leave Trasteros and reach the shop's website through Tradedoubler, which may use cookies to know the visit came from Trasteros. We do not send your nickname or any game data to the shop or to Tradedoubler. What you do on the shop's website is governed by its own privacy policy.</p>
+        <p>Each shop sets the discount, its conditions and its expiry date. We show them as provided, but we cannot guarantee that the shop will honor them.</p>
+
+        <h2>5. Why we use the data and for how long</h2>
+        <p>Only to make the game work: to remember your progress on your phone and to let you play with other people. What is stored on your phone stays there until you delete it; you can do so at any time by clearing this site's data in your browser settings.</p>
+
+        <h2>6. Providers and other countries</h2>
+        <p>De Soto Creations LLC and the providers mentioned (GitHub, Supabase and Tradedoubler) may process data outside your country, including in the United States.</p>
+
+        <h2>7. Your rights</h2>
+        <p>You can ask us for access to your data, to correct or delete it, to object to its use or to restrict it, by writing to <a href='mailto:magic@melodyforme.com'>magic@melodyforme.com</a>. Keep in mind that almost everything is stored only on your phone and is under your control. If you live in Spain and believe we have not handled your request properly, you can file a complaint with the Spanish Data Protection Agency (<a href='https://www.aepd.es' rel='noopener'>www.aepd.es</a>).</p>
+
+        <h2>8. Ownership and use of the game</h2>
+        <p>The game, its name, texts, images, voices and music belong to De Soto Creations LLC or are used under license. You may play freely for personal purposes; copying or reselling the game or its contents without permission is not allowed.</p>
+        <p>Trasteros is provided as is, with no guarantee that it will always be available or free of errors. Nothing above limits the rights that the law of your country gives you as a consumer.</p>
+
+        <h2>9. Changes</h2>
+        <p>If Trasteros changes (for example, if it is released as an app with ads or purchases), we will update this page beforehand and change the date above.</p>
+      </article>
+    </main>
+  </body>
+</html>

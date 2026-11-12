@@ -786,6 +786,28 @@ p {
 .pc.off {
   opacity: 0.45;
 }
+/* cinco fichas (tú y cuatro rivales, en el Puerto): se reparten el ancho en vez de salirse por la derecha */
+.people.tight {
+  gap: 5px;
+}
+.people.tight .pc {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+.people.tight .pc .nm .art {
+  display: none;
+}
+.people.tight .pc .mn {
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+@media (max-width: 420px) {
+  .people.tight .pc .mn .ic {
+    display: none;
+  }
+}
 .team {
   display: flex;
   flex-wrap: wrap;

@@ -45,7 +45,7 @@ export const ZONES = {
   // shark: [probabilidad de que el Tiburón suba tras una puja tuya, hasta cuántas veces lo que cree que vale]
   barrio: { sizes: { pequeño: 5, mediano: 4, grande: 1 }, kinds: { tesoro: 0.5, normal: 2, basura: 2.4, trampa: 1, misterio: 0.8 }, rivalMult: 0.56, rivalMoney: 1000, shark: [0.12, 1.05], rivals: ['r-urraca', 'r-tortuga'], rounds: 4, trickMult: 1 },
   poligono: { sizes: { pequeño: 2, mediano: 4.5, grande: 3.5 }, kinds: { tesoro: 1, normal: 2.4, basura: 1.4, trampa: 1, misterio: 1 }, rivalMult: 0.72, rivalMoney: 1800, shark: [0.25, 1.2], rounds: 4, trickMult: 1.5 },
-  puerto: { sizes: { pequeño: 1, mediano: 3, grande: 6 }, kinds: { tesoro: 1.6, normal: 2, basura: 1.4, trampa: 1.6, misterio: 1.8 }, rivalMult: 1, rivalMoney: 4500, shark: [0.5, 1.5], rounds: 4, trickMult: 3 },
+  puerto: { sizes: { pequeño: 1, mediano: 3, grande: 6 }, kinds: { tesoro: 1.6, normal: 2, basura: 1.4, trampa: 1.6, misterio: 1.8 }, rivalMult: 1, rivalMoney: 4500, shark: [0.5, 1.5], rivals: ['r-tiburon', 'r-urraca', 'r-tortuga', 'r-pulpo'], rounds: 4, trickMult: 3 },
   mansiones: { sizes: { pequeño: 2, mediano: 4, grande: 4 }, kinds: { tesoro: 2.6, normal: 2, basura: 0.8, trampa: 1, misterio: 1.4 }, rivalMult: 0.95, rivalMoney: 12000, shark: [0.55, 1.6], trickMult: 6 },
 };
 // Trucos: se compran con tu dinero en plena subasta para distraer a los rivales. Uno de cada por partida (o por día).
@@ -121,10 +121,13 @@ const BOT_NAMES = [
   ['El Chatarrero', 'abuelo', '👨‍🔧'],
   ['Paca Pujas', 'punk', '👩‍🎤'],
 ];
+export const BIG_TASTE = { grande: 1.2, mediano: 0.9, pequeño: 0.6 };
 const RIVALS = [
   { id: 'r-tiburon', name: 'El Tiburón', look: 'tiburon', emoji: '🦈', style: 'Agresivo: lee tus pujas', base: 0.95, reads: true },
   { id: 'r-urraca', name: 'La Urraca', look: 'urraca', emoji: '🐦', style: 'Le pierde lo que brilla', base: 0.8, shiny: true },
   { id: 'r-tortuga', name: 'La Tortuga', look: 'tortuga', emoji: '🐢', style: 'Prudente y paciente', base: 0.68 },
+  // solo sale donde la zona lo pide (el Puerto): lleva más dinero que nadie y va a por los trasteros grandes
+  { id: 'r-pulpo', name: 'El Pulpo', look: 'pulpo', emoji: '🐙', style: 'El más rico: va a por los grandes', base: 0.85, big: true, rich: 1.5, extra: true },
 ];
 // Subastador de la casa (modo cooperativo)
 export const HOUSE = { id: 'house', name: 'Don Martillo', look: 'martillo' };
@@ -521,7 +524,7 @@ function startGame(s, now) {
     s.totalRounds = s.career ? ZONES[s.career.zone].rounds || CAREER_ROUNDS : COOP_ROUNDS;
     s.team = { money: s.career ? s.career.money : START_MONEY_COOP, items: [] };
     const pick = s.career && ZONES[s.career.zone].rivals;
-    s.rivals = RIVALS.filter((r) => !pick || pick.includes(r.id)).map((r) => ({ ...r, money: s.career ? ZONES[s.career.zone].rivalMoney : RIVAL_MONEY, items: [] }));
+    s.rivals = RIVALS.filter((r) => (pick ? pick.includes(r.id) : !r.extra)).map((r) => ({ ...r, money: r10((s.career ? ZONES[s.career.zone].rivalMoney : RIVAL_MONEY) * (r.rich || 1)), items: [] }));
     if (s.career) s.deck = zoneDeck(s);
   }
   startRound(s, now);
@@ -710,6 +713,7 @@ function openAuction(s, now) {
       const kinds = [...(door ? [door.kind] : []), ...seenKinds(s, r.id)];
       if (r.shiny && kinds.some((k) => k === 'tesoro' || k === 'misterio')) f *= 1.3;
       if (r.shiny && kinds.length && kinds.every((k) => k === 'basura' || k === 'trampa')) f *= 0.8;
+      if (r.big) f *= BIG_TASTE[s.unit.size] || 1; // el Pulpo: a por los grandes, pasa de los pequeños
       const est = pub + (estimateFor(s, r.id) - pub) * TUNING.rivalPeek;
       s.auction.plans[r.id] = { max: r10(est * f), nextAt: null };
       if (rand(s) < 0.4) setFace(s, r.id, weighted(s, [['picaro', 2], ['poker', 2], ['codicia', 1], ['nervios', 1]]));

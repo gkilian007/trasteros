@@ -82,6 +82,7 @@ const NAMES_EN = {
   'El Tiburón': 'Shark',
   'La Urraca': 'Magpie',
   'La Tortuga': 'Tortoise',
+  'El Pulpo': 'Octopus',
   'Don Martillo': 'Mr. Hammer',
   'Vuestro equipo': 'Your team',
   Tú: 'You',
@@ -445,6 +446,7 @@ export const EN = {
   'Agresivo: lee tus pujas': 'Aggressive: reads your bids',
   'Le pierde lo que brilla': "Can't resist anything shiny",
   'Prudente y paciente': 'Careful and patient',
+  'El más rico: va a por los grandes': 'The richest: goes after the big units',
 
   // caras
   Póker: 'Poker face',
@@ -472,6 +474,7 @@ export const EN = {
   'El Tiburón': 'Shark',
   'La Urraca': 'Magpie',
   'La Tortuga': 'Tortoise',
+  'El Pulpo': 'Octopus',
 
   // objetos
   'Anillo de diamantes': 'Diamond ring',
@@ -557,9 +560,9 @@ export const EN = {
   'Nuevo en tu álbum: {item}': 'New in your album: {item}',
   '{n} objetos nuevos en tu álbum': '{n} new items in your album',
   'Tu álbum': 'Your album',
-  'Objetivo: llega a nivel {n} para abrir el Puerto. Allí hay objetos, colecciones y mejoras nuevos.': 'Goal: reach level {n} to open the Port. New items, collections and upgrades await there.',
+  'Objetivo: llega a nivel {n} para abrir el Puerto. Allí hay objetos, colecciones y mejoras nuevos, y un rival más: el Pulpo.': 'Goal: reach level {n} to open the Port. New items, collections and upgrades await there, and one more rival: the Octopus.',
   'Objetivo: junta {v} para abrir el Puerto.': 'Goal: save up {v} to open the Port.',
-  '¡Ya puedes abrir el Puerto! Allí hay objetos, colecciones y mejoras nuevos.': 'You can open the Port now! New items, collections and upgrades await there.',
+  '¡Ya puedes abrir el Puerto! Allí hay objetos, colecciones y mejoras nuevos, y un rival más: el Pulpo.': 'You can open the Port now! New items, collections and upgrades await there, and one more rival: the Octopus.',
   'Objetivo: completa los álbumes del Puerto y llega a nivel {n}. Las Mansiones llegan pronto.': 'Goal: complete the Port albums and reach level {n}. The Mansions are coming soon.',
   'Ancla antigua': 'Antique anchor',
   'Brújula': 'Compass',

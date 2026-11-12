@@ -1101,9 +1101,9 @@ function careerGoal(st) {
   if (up) return { icon: C.UPGRADES[up].emoji, text: t('Te llega para mejorar: {name}.', { name: t(C.UPGRADES[up].name) }), act: 'ctab', v: 'mejoras', btn: t('Ver mejoras') };
   const hz = C.zoneState(st, 'puerto');
   if (!hz.open) {
-    if (level < hz.level) return { icon: '⭐', text: t('Objetivo: llega a nivel {n} para abrir el Puerto. Allí hay objetos, colecciones y mejoras nuevos.', { n: hz.level }) };
+    if (level < hz.level) return { icon: '⭐', text: t('Objetivo: llega a nivel {n} para abrir el Puerto. Allí hay objetos, colecciones y mejoras nuevos, y un rival más: el Pulpo.', { n: hz.level }) };
     if (!hz.afford) return { icon: '💰', text: t('Objetivo: junta {v} para abrir el Puerto.', { v: money(hz.price) }) };
-    return { icon: '🔑', text: t('¡Ya puedes abrir el Puerto! Allí hay objetos, colecciones y mejoras nuevos.'), act: 'careerZone', v: 'puerto', btn: t('Abrir') };
+    return { icon: '🔑', text: t('¡Ya puedes abrir el Puerto! Allí hay objetos, colecciones y mejoras nuevos, y un rival más: el Pulpo.'), act: 'careerZone', v: 'puerto', btn: t('Abrir') };
   }
   return { icon: '🏆', text: t('Objetivo: completa los álbumes del Puerto y llega a nivel {n}. Las Mansiones llegan pronto.', { n: C.ZONE_INFO.mansiones.level }) };
 }
@@ -1881,13 +1881,13 @@ function coopPeople(v) {
     .map((r) => {
       const lead = a && v.phase === 'auction' && a.leader === r.id;
       const sc = chipValue(v, r.id, r.money, r.worth);
-      return `<div class='pc ${lead ? 'lead' : ''}${dzIcon(v, r.id) ? ' dz' : ''}' data-pid='${esc(r.id)}' title='${esc(t(r.style))} · ${esc(sc.title)}'>${sc.badge}<div class='av'>${face(r.look, faceOf(v, r.id))}${dzIcon(v, r.id)}</div><div class='nm'>${esc(tname(r.name))}</div><div class='mn'>${sc.html}</div></div>`;
+      return `<div class='pc ${lead ? 'lead' : ''}${dzIcon(v, r.id) ? ' dz' : ''}' data-pid='${esc(r.id)}' title='${esc(t(r.style))} · ${esc(sc.title)}'>${sc.badge}<div class='av'>${face(r.look, faceOf(v, r.id))}${dzIcon(v, r.id)}</div><div class='nm'>${esc(tname(r.name)).replace(/^(El|La) /, "<span class='art'>$1 </span>")}</div><div class='mn'>${sc.html}</div></div>`;
     })
     .join('');
   const teamLead = a && v.phase === 'auction' && a.leader === 'team';
   const ts = chipValue(v, 'team', v.team ? v.team.money : 0, v.team ? v.team.worth : 0);
   const teamAv = v.career ? face(myLook(), faceOf(v, myId)) : ic('🤝', 'ic team-ic');
-  return `<div class='people'><div class='pc ${teamLead ? 'lead' : ''} me' data-pid='team'>${ts.badge}<div class='av'>${teamAv}</div><div class='nm'>${v.career ? t('Tú') : t('Equipo')}</div><div class='mn'>${ts.html}</div></div>${rivals}</div>
+  return `<div class='people${(v.rivals || []).length >= 4 ? ' tight' : ''}'><div class='pc ${teamLead ? 'lead' : ''} me' data-pid='team'>${ts.badge}<div class='av'>${teamAv}</div><div class='nm'>${v.career ? t('Tú') : t('Equipo')}</div><div class='mn'>${ts.html}</div></div>${rivals}</div>
     ${v.career ? '' : `<div class='team' aria-label='${t('Tu equipo')}'>${mates}</div>`}`;
 }
 

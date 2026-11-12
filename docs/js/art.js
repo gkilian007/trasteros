@@ -32,6 +32,7 @@ export const LOOK_LABEL = {
   tiburon: 'El Tiburón',
   urraca: 'La Urraca',
   tortuga: 'La Tortuga',
+  pulpo: 'El Pulpo',
 };
 
 // Emoji → archivo del icono 3D (código de puntos en hexadecimal)
@@ -146,6 +147,7 @@ export const WIN_LINES = {
   tiburon: ['Los negocios son los negocios.', 'El tiburón siempre come.', 'Gracias por calentarme el precio.'],
   urraca: ['¡Ooh, brillante! Para mi nido.', 'Todo lo que brilla, para mí.', '¡Qué cosas tan bonitas!'],
   tortuga: ['Despacito y con buena letra.', 'Sin prisa, pero sin pausa.', 'Lento, pero me lo llevo.'],
+  pulpo: ['¡Ocho brazos y todos llenos!', 'En mi puerto mando yo.', 'Esto se viene conmigo al muelle.'],
 };
 // lo mismo en inglés (mismo orden: la voz de cada frase va por su número)
 export const WIN_LINES_EN = {
@@ -163,6 +165,7 @@ export const WIN_LINES_EN = {
   tiburon: ['Business is business.', 'The shark always eats.', 'Thanks for warming up the price.'],
   urraca: ['Ooh, shiny! For my nest.', 'Everything that glitters is mine.', 'Such pretty things!'],
   tortuga: ['Slow and steady.', 'No rush, but no rest.', "Slow, but it's mine."],
+  pulpo: ['Eight arms, and every one of them full!', 'My port, my rules.', "This one's coming to the dock with me."],
 };
 // lo que dice el subastador con la persiana bajada, como un vendedor que quiere colocar el trastero
 export const SALES_LINES = {

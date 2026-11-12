@@ -34,7 +34,7 @@ export function levelOf(xp) {
 export const ZONE_INFO = {
   barrio: { level: 1, price: 0, name: 'Barrio', sub: 'Trasteros pequeños' },
   poligono: { level: 3, price: 1500, name: 'Polígono', sub: 'Herramientas y muebles' },
-  puerto: { level: 10, price: 5000, name: 'Puerto', sub: 'Contenedores enteros' },
+  puerto: { level: 6, price: 5000, name: 'Puerto', sub: 'Contenedores enteros' },
   mansiones: { level: 20, price: 25000, soon: true, name: 'Mansiones', sub: 'Herencias de lujo' },
 };
 export const ZONE_ORDER = ['barrio', 'poligono', 'puerto', 'mansiones'];
@@ -42,13 +42,13 @@ export const ZONE_ORDER = ['barrio', 'poligono', 'puerto', 'mansiones'];
 // Mejoras: precio de cada nivel y nivel de reputación que piden
 export const UPGRADES = {
   // zoneAt: a partir de ese nivel de la mejora hace falta haber abierto el Puerto
-  lupa: { costs: [600, 2000, 5000, 12000], need: [1, 3, 5, 12], zoneAt: 3, name: 'Lupa', emoji: '👁️' }, // +1 caja vista por nivel
-  furgoneta: { costs: [700, 2500, 6000, 12000], need: [1, 3, 5, 11], zoneAt: 3, cap: [10, 18, 28, 40, 55], name: 'Furgoneta', emoji: '🚚' }, // sitio en el almacén
-  tienda: { costs: [900, 3000, 7000, 14000], need: [2, 4, 6, 12], zoneAt: 3, bonus: [0, 0.05, 0.1, 0.15, 0.2], name: 'Tienda', emoji: '💰' }, // vendes más caro
+  lupa: { costs: [600, 2000, 5000, 12000], need: [1, 3, 5, 8], zoneAt: 3, name: 'Lupa', emoji: '👁️' }, // +1 caja vista por nivel
+  furgoneta: { costs: [700, 2500, 6000, 12000], need: [1, 3, 5, 7], zoneAt: 3, cap: [10, 18, 28, 40, 55], name: 'Furgoneta', emoji: '🚚' }, // sitio en el almacén
+  tienda: { costs: [900, 3000, 7000, 14000], need: [2, 4, 6, 8], zoneAt: 3, bonus: [0, 0.05, 0.1, 0.15, 0.2], name: 'Tienda', emoji: '💰' }, // vendes más caro
   // se abren al llegar al Puerto
-  contactos: { costs: [1500, 4000, 9000], need: [10, 12, 14], zone: 'puerto', off: [0, 0.2, 0.35, 0.5], name: 'Contactos', emoji: '📞' }, // los trucos cuestan menos
-  seguro: { costs: [2000, 5000, 10000], need: [10, 13, 16], zone: 'puerto', off: [0, 0.35, 0.7, 1], name: 'Seguro', emoji: '🛡️' }, // las trampas cuestan menos
-  cerrajero: { costs: [1200, 3000, 6000], need: [10, 11, 12], zone: 'puerto', price: [50, 30, 15, 0], name: 'Cerrajero propio', emoji: '🔑' }, // abrir cajas fuertes sale más barato
+  contactos: { costs: [1500, 4000, 9000], need: [6, 8, 10], zone: 'puerto', off: [0, 0.2, 0.35, 0.5], name: 'Contactos', emoji: '📞' }, // los trucos cuestan menos
+  seguro: { costs: [2000, 5000, 10000], need: [6, 9, 12], zone: 'puerto', off: [0, 0.35, 0.7, 1], name: 'Seguro', emoji: '🛡️' }, // las trampas cuestan menos
+  cerrajero: { costs: [1200, 3000, 6000], need: [6, 7, 8], zone: 'puerto', price: [50, 30, 15, 0], name: 'Cerrajero propio', emoji: '🔑' }, // abrir cajas fuertes sale más barato
 };
 export const UPGRADE_ORDER = ['lupa', 'furgoneta', 'tienda', 'contactos', 'seguro', 'cerrajero'];
 export const UPGRADE_ZONE = 'puerto';

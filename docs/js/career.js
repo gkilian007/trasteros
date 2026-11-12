@@ -34,18 +34,24 @@ export function levelOf(xp) {
 export const ZONE_INFO = {
   barrio: { level: 1, price: 0, name: 'Barrio', sub: 'Trasteros pequeños' },
   poligono: { level: 3, price: 1500, name: 'Polígono', sub: 'Herramientas y muebles' },
-  puerto: { level: 10, price: 5000, soon: true, name: 'Puerto', sub: 'Contenedores enteros' },
+  puerto: { level: 10, price: 5000, name: 'Puerto', sub: 'Contenedores enteros' },
   mansiones: { level: 20, price: 25000, soon: true, name: 'Mansiones', sub: 'Herencias de lujo' },
 };
 export const ZONE_ORDER = ['barrio', 'poligono', 'puerto', 'mansiones'];
 
 // Mejoras: precio de cada nivel y nivel de reputación que piden
 export const UPGRADES = {
-  lupa: { costs: [600, 2000, 5000], need: [1, 3, 5], name: 'Lupa', emoji: '👁️' }, // +1 caja vista por nivel
-  furgoneta: { costs: [700, 2500, 6000], need: [1, 3, 5], cap: [10, 18, 28, 40], name: 'Furgoneta', emoji: '🚚' }, // sitio en el almacén
-  tienda: { costs: [900, 3000, 7000], need: [2, 4, 6], bonus: [0, 0.05, 0.1, 0.15], name: 'Tienda', emoji: '💰' }, // vendes más caro
+  // zoneAt: a partir de ese nivel de la mejora hace falta haber abierto el Puerto
+  lupa: { costs: [600, 2000, 5000, 12000], need: [1, 3, 5, 12], zoneAt: 3, name: 'Lupa', emoji: '👁️' }, // +1 caja vista por nivel
+  furgoneta: { costs: [700, 2500, 6000, 12000], need: [1, 3, 5, 11], zoneAt: 3, cap: [10, 18, 28, 40, 55], name: 'Furgoneta', emoji: '🚚' }, // sitio en el almacén
+  tienda: { costs: [900, 3000, 7000, 14000], need: [2, 4, 6, 12], zoneAt: 3, bonus: [0, 0.05, 0.1, 0.15, 0.2], name: 'Tienda', emoji: '💰' }, // vendes más caro
+  // se abren al llegar al Puerto
+  contactos: { costs: [1500, 4000, 9000], need: [10, 12, 14], zone: 'puerto', off: [0, 0.2, 0.35, 0.5], name: 'Contactos', emoji: '📞' }, // los trucos cuestan menos
+  seguro: { costs: [2000, 5000, 10000], need: [10, 13, 16], zone: 'puerto', off: [0, 0.35, 0.7, 1], name: 'Seguro', emoji: '🛡️' }, // las trampas cuestan menos
+  cerrajero: { costs: [1200, 3000, 6000], need: [10, 11, 12], zone: 'puerto', price: [50, 30, 15, 0], name: 'Cerrajero propio', emoji: '🔑' }, // abrir cajas fuertes sale más barato
 };
-export const UPGRADE_ORDER = ['lupa', 'furgoneta', 'tienda'];
+export const UPGRADE_ORDER = ['lupa', 'furgoneta', 'tienda', 'contactos', 'seguro', 'cerrajero'];
+export const UPGRADE_ZONE = 'puerto';
 
 const empty = () => ({
   v: 1,
@@ -54,7 +60,7 @@ const empty = () => ({
   xp: 0,
   zone: 'barrio',
   zones: { barrio: true },
-  up: { lupa: 0, furgoneta: 0, tienda: 0 },
+  up: { lupa: 0, furgoneta: 0, tienda: 0, contactos: 0, seguro: 0, cerrajero: 0 },
   items: [], // { id, v, k } k: identificador único en el almacén
   nextK: 1,
   best: 0, // mejor día (ganancia)
@@ -95,6 +101,9 @@ export function reset() {
 
 export const capacity = (st) => UPGRADES.furgoneta.cap[st.up.furgoneta] || UPGRADES.furgoneta.cap[0];
 export const shopBonus = (st) => UPGRADES.tienda.bonus[st.up.tienda] || 0;
+export const trickOff = (st) => UPGRADES.contactos.off[st.up.contactos || 0] || 0;
+export const trapOff = (st) => UPGRADES.seguro.off[st.up.seguro || 0] || 0;
+export const locksmith = (st) => UPGRADES.cerrajero.price[st.up.cerrajero || 0] ?? LOCKSMITH;
 export const sellPrice = (st, it) => r10(it.v * (1 + shopBonus(st)));
 export const warehouseValue = (st) => st.items.reduce((t, it) => t + sellPrice(st, it), 0);
 
@@ -151,8 +160,9 @@ export function sellAt(st, k, price) {
 // Caja fuerte cerrada: el cerrajero la abre (cobra LOCKSMITH) y sale lo que haya dentro
 export function openSafe(st, k, x = Math.random()) {
   const it = st.items.find((o) => o.k === k);
-  if (!it || !it.closed || st.money < LOCKSMITH) return null;
-  st.money -= LOCKSMITH;
+  const fee = locksmith(st);
+  if (!it || !it.closed || st.money < fee) return null;
+  st.money -= fee;
   const out = safeDraw(x);
   it.v = SAFE_CONTENTS[out].value;
   it.out = out;
@@ -193,7 +203,9 @@ export function upgradeInfo(st, key) {
   const cost = u.costs[lv];
   const need = u.need[lv];
   const level = levelOf(st.xp).level;
-  return { lv, cost, need, locked: level < need, afford: st.money >= cost };
+  // las mejoras nuevas y el cuarto nivel de las de siempre piden haber abierto el Puerto
+  const zone = (u.zone || (u.zoneAt != null && lv >= u.zoneAt)) && !st.zones[UPGRADE_ZONE] ? UPGRADE_ZONE : null;
+  return { lv, cost, need, zone, locked: level < need || !!zone, afford: st.money >= cost };
 }
 export function buyUpgrade(st, key) {
   const info = upgradeInfo(st, key);

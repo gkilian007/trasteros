@@ -2,7 +2,7 @@
 // Es puro: recibe el estado y la hora (now) y lo modifica; no toca red ni DOM,
 // así que se puede probar en Node simulando partidas completas.
 
-import { ITEMS, ITEM, itemEV, SLOT_EV, SET_NEED, SET_BONUS, SET_EXTRA, setCounts, SAFE_CONTENTS, SAFE_CLOSED, safeDraw } from './items.js';
+import { ITEMS, BASE_ITEMS, inZone, ITEM, itemEV, SLOT_EV, SET_NEED, SET_BONUS, SET_EXTRA, setCounts, SAFE_CONTENTS, SAFE_CLOSED, safeDraw } from './items.js';
 import { FACES, PLAYER_LOOKS } from './art.js';
 
 export const MAX_VERSUS = 7; // jugadores totales (humanos + bots)
@@ -45,7 +45,7 @@ export const ZONES = {
   // shark: [probabilidad de que el Tiburón suba tras una puja tuya, hasta cuántas veces lo que cree que vale]
   barrio: { sizes: { pequeño: 5, mediano: 4, grande: 1 }, kinds: { tesoro: 0.5, normal: 2, basura: 2.4, trampa: 1, misterio: 0.8 }, rivalMult: 0.56, rivalMoney: 1000, shark: [0.12, 1.05], rivals: ['r-urraca', 'r-tortuga'], rounds: 4, trickMult: 1 },
   poligono: { sizes: { pequeño: 2, mediano: 4.5, grande: 3.5 }, kinds: { tesoro: 1, normal: 2.4, basura: 1.4, trampa: 1, misterio: 1 }, rivalMult: 0.72, rivalMoney: 1800, shark: [0.25, 1.2], rounds: 4, trickMult: 1.5 },
-  puerto: { sizes: { pequeño: 1, mediano: 3, grande: 6 }, kinds: { tesoro: 1.6, normal: 2, basura: 1.4, trampa: 1.6, misterio: 1.8 }, rivalMult: 0.9, rivalMoney: 4500, shark: [0.5, 1.5], trickMult: 3 },
+  puerto: { sizes: { pequeño: 1, mediano: 3, grande: 6 }, kinds: { tesoro: 1.6, normal: 2, basura: 1.4, trampa: 1.6, misterio: 1.8 }, rivalMult: 1, rivalMoney: 4500, shark: [0.5, 1.5], rounds: 4, trickMult: 3 },
   mansiones: { sizes: { pequeño: 2, mediano: 4, grande: 4 }, kinds: { tesoro: 2.6, normal: 2, basura: 0.8, trampa: 1, misterio: 1.4 }, rivalMult: 0.95, rivalMoney: 12000, shark: [0.55, 1.6], trickMult: 6 },
 };
 // Trucos: se compran con tu dinero en plena subasta para distraer a los rivales. Uno de cada por partida (o por día).
@@ -57,26 +57,27 @@ export const TRICKS = {
 };
 export const TRICK_ORDER = ['movil', 'famoso', 'prisa'];
 const DAZED_MISS = 0.67;
-const trickCost = (s, id) => Math.round((TRICKS[id].cost * (s.career ? ZONES[s.career.zone].trickMult || 1 : 1)) / 10) * 10;
+const trickCost = (s, id) => Math.round((TRICKS[id].cost * (s.career ? (ZONES[s.career.zone].trickMult || 1) * (1 - (s.career.trickOff || 0)) : 1)) / 10) * 10;
 
 // prepara una sala de anfitrión para un día de carrera (antes de «start»)
 // wanted: los pocos objetos que le faltan al jugador en el álbum; salen más a menudo (ver zoneDeck)
 export const WANTED_MAX = 6;
 export const WANTED_EXTRA = 3;
-export function setupCareer(s, { zone, money, lupa = 0, wanted = [] }) {
+// trickOff / trapOff: descuento (0 a 1) en trucos y trampas por las mejoras Contactos y Seguro
+export function setupCareer(s, { zone, money, lupa = 0, wanted = [], trickOff = 0, trapOff = 0 }) {
   if (!ZONES[zone]) throw new Error('zona desconocida: ' + zone);
   s.mode = 'coop';
   s.players = humans(s);
-  s.career = { zone, money: Math.max(0, Math.round(money)), lupa: Math.max(0, Math.min(3, lupa | 0)), wanted: Array.isArray(wanted) && wanted.length <= WANTED_MAX ? wanted.filter((id) => ITEM[id]) : [] };
+  s.career = { zone, money: Math.max(0, Math.round(money)), lupa: Math.max(0, Math.min(4, lupa | 0)), trickOff: Math.max(0, Math.min(1, +trickOff || 0)), trapOff: Math.max(0, Math.min(1, +trapOff || 0)), wanted: Array.isArray(wanted) && wanted.length <= WANTED_MAX ? wanted.filter((id) => ITEM[id]) : [] };
   bump(s);
 }
 // mazo de la zona: cada objeto aparece más o menos según su tipo
 function zoneDeck(s) {
   const z = ZONES[s.career.zone];
   const ids = [];
-  for (const it of ITEMS) for (let k = Math.round((z.kinds[it.kind] || 0) * 2); k > 0; k--) ids.push(it.id);
+  for (const it of ITEMS) if (inZone(it, s.career.zone)) for (let k = Math.round((z.kinds[it.kind] || 0) * 2); k > 0; k--) ids.push(it.id);
   // cuando al álbum le faltan pocos objetos, esos salen más: si no, los raros (trampas, lotería) podían tardar muchísimo
-  for (const id of s.career.wanted || []) for (let k = 0; k < WANTED_EXTRA; k++) ids.push(id);
+  for (const id of s.career.wanted || []) if (inZone(ITEM[id], s.career.zone)) for (let k = 0; k < WANTED_EXTRA; k++) ids.push(id);
   return shuffle(s, ids);
 }
 
@@ -494,7 +495,7 @@ function toLobby(s) {
 }
 
 function startGame(s, now) {
-  s.deck = shuffle(s, ITEMS.map((i) => i.id));
+  s.deck = shuffle(s, BASE_ITEMS.map((i) => i.id));
   s.lastSpecial = null;
   s.game = (s.game || 0) + 1; // número de partida en esta sala (para no contar dos veces los récords)
   s.tricks = {}; // trucos ya gastados en esta partida, por jugador (o 'team')
@@ -530,7 +531,7 @@ function draw(s, n) {
   const out = [];
   let guard = 0;
   while (out.length < n) {
-    if (!s.deck.length) s.deck = s.career ? zoneDeck(s) : shuffle(s, ITEMS.map((i) => i.id).filter((id) => !out.includes(id)));
+    if (!s.deck.length) s.deck = s.career ? zoneDeck(s) : shuffle(s, BASE_ITEMS.map((i) => i.id).filter((id) => !out.includes(id)));
     const id = s.deck.pop();
     // en el mazo de la carrera hay copias: en un mismo trastero, cada objeto una sola vez
     if (out.includes(id) && guard++ < 200) {
@@ -1003,21 +1004,25 @@ function resolveValues(s) {
 // (3 piezas) cobra el premio al momento, y cada pieza más de esa colección, un poco más.
 // Nadie se queda con dinero negativo: las trampas se pagan con lo que quede y el resto se perdona
 // (owed: lo que costaban; paid: lo que se ha podido pagar).
-function giveUnit(owner, ids, values, noSets = false) {
+// trapOff: parte de las trampas que cubre el seguro (mejora de Rey de las subastas); saved: lo que ahorra
+function giveUnit(owner, ids, values, noSets = false, trapOff = 0) {
   const before = setCounts(owner.items);
   let owed = 0;
   let paid = 0;
+  let saved = 0;
   ids.forEach((id, i) => {
     const v = values[i];
     if (v > 0) owner.items.push({ id, v });
     else if (v < 0) {
-      const pay = Math.min(-v, Math.max(0, owner.money));
+      const cost = Math.round(-v * (1 - trapOff));
+      const pay = Math.min(cost, Math.max(0, owner.money));
       owner.money -= pay;
-      owed += -v;
+      owed += cost;
       paid += pay;
+      saved += -v - cost;
     }
   });
-  if (noSets) return { sets: [], bonus: 0, owed, paid }; // carrera: las colecciones se cobran en el almacén
+  if (noSets) return { sets: [], bonus: 0, owed, paid, saved }; // carrera: las colecciones se cobran en el almacén
   const after = setCounts(owner.items);
   const sets = [];
   for (const c in after) {
@@ -1029,7 +1034,7 @@ function giveUnit(owner, ids, values, noSets = false) {
   }
   const bonus = sets.reduce((t, x) => t + x.bonus, 0);
   owner.money += bonus;
-  return { sets, bonus, owed, paid };
+  return { sets, bonus, owed, paid, saved };
 }
 
 // Caras automáticas al abrir el trastero
@@ -1083,8 +1088,9 @@ function closeAuction(s, now) {
   } else if (a.leader) {
     const owner = a.leader === 'team' ? s.team : s.rivals.find((r) => r.id === a.leader);
     owner.money -= a.amount;
-    const g = giveUnit(owner, s.unit.ids, values, !!s.career);
-    Object.assign(res, { winner: a.leader, winnerName: a.leaderName, price: a.amount, profit: total - a.amount + (g.owed - g.paid), bonus: g.bonus });
+    const g = giveUnit(owner, s.unit.ids, values, !!s.career, s.career && a.leader === 'team' ? s.career.trapOff || 0 : 0);
+    Object.assign(res, { winner: a.leader, winnerName: a.leaderName, price: a.amount, profit: total - a.amount + (g.owed - g.paid) + g.saved, bonus: g.bonus });
+    if (g.saved > 0) notes.push({ k: 'seguro', saved: g.saved, who: a.leader });
     if (g.owed > g.paid) notes.push({ k: 'sinDinero', owed: g.owed, paid: g.paid, who: a.leader });
     g.sets.forEach((x) => notes.push({ k: 'coleccion', ...x, who: a.leader }));
   }

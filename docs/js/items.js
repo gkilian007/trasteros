@@ -45,6 +45,21 @@ export const ITEMS = [
   // Misterio
   { id: 'cajafuerte', name: 'Caja fuerte', emoji: '🔐', kind: 'misterio', safe: true, odds: [], desc: 'Cerrada: nadie sabe qué hay. Puede estar vacía… o tener un saco de oro' },
   { id: 'cuadro', name: 'Cuadro dudoso', emoji: '🖼️', kind: 'misterio', odds: [[0.5, 450], [0.5, 20]], desc: '50 %: obra de arte (450 €) · 50 %: copia (20 €)' },
+  // Puerto: solo salen en Rey de las subastas, desde esa zona
+  { id: 'ancla', name: 'Ancla antigua', emoji: '⚓', kind: 'tesoro', value: 520, zone: 'puerto' },
+  { id: 'brujula', name: 'Brújula', emoji: '🧭', kind: 'normal', value: 260, zone: 'puerto' },
+  { id: 'catalejo', name: 'Catalejo', emoji: '🔭', kind: 'tesoro', value: 340, zone: 'puerto' },
+  { id: 'velero', name: 'Maqueta de velero', emoji: '⛵', kind: 'tesoro', value: 420, zone: 'puerto' },
+  { id: 'anfora', name: 'Ánfora', emoji: '🏺', kind: 'tesoro', value: 600, zone: 'puerto' },
+  { id: 'perlas', name: 'Perlas', emoji: '🦪', kind: 'tesoro', value: 700, zone: 'puerto' },
+  { id: 'mapa', name: 'Mapa del tesoro', emoji: '🗺️', kind: 'misterio', odds: [[0.25, 1500], [0.75, 30]], desc: '25 %: lleva a un tesoro (1.500 €) · 75 %: es de mentira (30 €)', zone: 'puerto' },
+  { id: 'buceo', name: 'Equipo de buceo', emoji: '🤿', kind: 'normal', value: 180, zone: 'puerto' },
+  { id: 'scooter', name: 'Moto scooter', emoji: '🛵', kind: 'tesoro', value: 650, zone: 'puerto' },
+  { id: 'portatil', name: 'Portátiles', emoji: '💻', kind: 'normal', value: 380, zone: 'puerto' },
+  { id: 'piano', name: 'Piano eléctrico', emoji: '🎹', kind: 'normal', value: 300, zone: 'puerto' },
+  { id: 'auriculares', name: 'Auriculares', emoji: '🎧', kind: 'normal', value: 150, zone: 'puerto' },
+  { id: 'pescado', name: 'Pescado podrido', emoji: '🐟', kind: 'trampa', value: -200, desc: 'Limpiar el contenedor cuesta 200 €', zone: 'puerto' },
+  { id: 'aduana', name: 'Tasas de aduana', emoji: '🛃', kind: 'trampa', value: -300, desc: 'Pagas 300 € de tasas', zone: 'puerto' },
   { id: 'boleto', name: 'Lotería', emoji: '🎟️', kind: 'misterio', odds: [[0.15, 900], [0.85, 0]], desc: '15 %: premio de 900 €' },
 ];
 
@@ -66,6 +81,10 @@ export function safeDraw(x) {
 }
 
 export const ITEM = Object.fromEntries(ITEMS.map((it) => [it.id, it]));
+// Los objetos con zona solo salen en Rey de las subastas, en esa zona y las siguientes
+export const ZONE_RANK = { barrio: 0, poligono: 1, puerto: 2, mansiones: 3 };
+export const inZone = (it, zone) => !it.zone || (ZONE_RANK[zone] ?? -1) >= ZONE_RANK[it.zone];
+export const BASE_ITEMS = ITEMS.filter((it) => !it.zone); // los de siempre: competitivo, cooperativo y primeras zonas
 
 // Colecciones: juntar 3 objetos de la misma a lo largo de la partida da un premio (y cada pieza más, otro)
 export const COLLECTIONS = [
@@ -74,6 +93,10 @@ export const COLLECTIONS = [
   { id: 'retro', name: 'Retro', emoji: '🕹️', items: ['recreativa', 'consola', 'tele', 'comics', 'camara'] },
   { id: 'aventura', name: 'Aventura', emoji: '🏍️', items: ['moto', 'bici', 'skate', 'deporte', 'maleta'] },
   { id: 'hogar', name: 'Hogar', emoji: '🏠', items: ['silla', 'cocina', 'herramientas', 'peluches'] },
+  // se abren al llegar al Puerto
+  { id: 'nautica', name: 'Náutica', emoji: '⚓', zone: 'puerto', items: ['ancla', 'brujula', 'catalejo', 'velero'] },
+  { id: 'hundido', name: 'Tesoro hundido', emoji: '🏺', zone: 'puerto', items: ['anfora', 'perlas', 'mapa', 'buceo'] },
+  { id: 'importacion', name: 'Importación', emoji: '🚢', zone: 'puerto', items: ['scooter', 'portatil', 'piano', 'auriculares'] },
 ];
 export const COLLECTION = Object.fromEntries(COLLECTIONS.map((c) => [c.id, c]));
 export const SET_OF = Object.fromEntries(COLLECTIONS.flatMap((c) => c.items.map((id) => [id, c.id])));
@@ -108,7 +131,7 @@ export function itemEV(id) {
 }
 
 // Valor medio de un hueco desconocido
-export const SLOT_EV = ITEMS.reduce((s, it) => s + itemEV(it.id), 0) / ITEMS.length;
+export const SLOT_EV = BASE_ITEMS.reduce((s, it) => s + itemEV(it.id), 0) / BASE_ITEMS.length;
 
 export function valueLabel(id) {
   const it = ITEM[id];

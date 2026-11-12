@@ -5068,3 +5068,11 @@ a.btn {
 .legal-link a {
   color: var(--muted);
 }
+.al-g.locked {
+  opacity: 0.7;
+}
+.al-g.locked .al-rw {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

@@ -1,13 +1,15 @@
 // Álbum de objetos: todo lo que has encontrado en los trasteros que te has llevado (en cualquier modo).
 // Se guarda en este móvil. Cada grupo completo da un premio para Rey de las subastas.
-import { ITEMS, COLLECTIONS, SET_OF } from './items.js';
+import { ITEMS, ITEM, COLLECTIONS, SET_OF, inZone } from './items.js';
 
 const KEY = 'tr-album';
 
 export const GROUPS = [
-  ...COLLECTIONS.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji, items: c.items, reward: 300 })),
-  { id: 'chatarra', name: 'Chatarra y sorpresas', emoji: '📦', items: ITEMS.filter((it) => !SET_OF[it.id] && it.kind !== 'trampa').map((it) => it.id), reward: 100 },
-  { id: 'trampas', name: 'Trampas', emoji: '☣️', items: ITEMS.filter((it) => it.kind === 'trampa').map((it) => it.id), reward: 150 },
+  // zone: el álbum se abre al llegar a esa zona de Rey de las subastas (antes se ve con candado)
+  ...COLLECTIONS.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji, items: c.items, reward: c.zone ? 500 : 300, zone: c.zone || null })),
+  { id: 'chatarra', name: 'Chatarra y sorpresas', emoji: '📦', items: ITEMS.filter((it) => !it.zone && !SET_OF[it.id] && it.kind !== 'trampa').map((it) => it.id), reward: 100, zone: null },
+  { id: 'trampas', name: 'Trampas', emoji: '☣️', items: ITEMS.filter((it) => !it.zone && it.kind === 'trampa').map((it) => it.id), reward: 150, zone: null },
+  { id: 'trampas-puerto', name: 'Trampas del puerto', emoji: '🛃', items: ITEMS.filter((it) => it.zone === 'puerto' && it.kind === 'trampa').map((it) => it.id), reward: 200, zone: 'puerto' },
 ];
 export const TOTAL = GROUPS.reduce((t, g) => t + g.items.length, 0);
 
@@ -43,7 +45,8 @@ export function record(ids, key) {
 }
 
 // lo que falta por encontrar
-export const missing = (a) => GROUPS.flatMap((g) => g.items).filter((id) => !a.found[id]);
+// (con zona: solo lo que puede salir jugando en ella)
+export const missing = (a, zone) => GROUPS.flatMap((g) => g.items).filter((id) => !a.found[id] && (!zone || inZone(ITEM[id], zone)));
 export const have = (a) => GROUPS.reduce((t, g) => t + g.items.filter((id) => a.found[id]).length, 0);
 export const complete = (a, g) => g.items.every((id) => a.found[id]);
 export const claimable = (a) => GROUPS.filter((g) => complete(a, g) && !a.claimed[g.id]);

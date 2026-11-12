@@ -1099,7 +1099,13 @@ function careerGoal(st) {
     return !i.max && !i.locked && i.afford;
   });
   if (up) return { icon: C.UPGRADES[up].emoji, text: t('Te llega para mejorar: {name}.', { name: t(C.UPGRADES[up].name) }), act: 'ctab', v: 'mejoras', btn: t('Ver mejoras') };
-  return { icon: '🏆', text: t('Objetivo: llega a nivel {n}. El Puerto llega pronto.', { n: C.ZONE_INFO.puerto.level }) };
+  const hz = C.zoneState(st, 'puerto');
+  if (!hz.open) {
+    if (level < hz.level) return { icon: '⭐', text: t('Objetivo: llega a nivel {n} para abrir el Puerto. Allí hay objetos, colecciones y mejoras nuevos.', { n: hz.level }) };
+    if (!hz.afford) return { icon: '💰', text: t('Objetivo: junta {v} para abrir el Puerto.', { v: money(hz.price) }) };
+    return { icon: '🔑', text: t('¡Ya puedes abrir el Puerto! Allí hay objetos, colecciones y mejoras nuevos.'), act: 'careerZone', v: 'puerto', btn: t('Abrir') };
+  }
+  return { icon: '🏆', text: t('Objetivo: completa los álbumes del Puerto y llega a nivel {n}. Las Mansiones llegan pronto.', { n: C.ZONE_INFO.mansiones.level }) };
 }
 function careerTop(st) {
   return `<div class='ctop'>
@@ -1163,7 +1169,7 @@ function careerStore(st) {
     .map((it) => {
       const def = ITEM[it.id];
       const sh = def && def.safe ? shownAs(it.id, it.closed ? -1 : it.out == null ? null : it.out) : def;
-      const open = it.closed ? `<button class='btn sm primary' data-act='careerSafe' data-v='${it.k}' aria-label='${t('Abrir con el cerrajero')}' ${st.money >= LOCKSMITH ? '' : 'disabled'}>${ic('🔑', 'ic sm')} ${money(LOCKSMITH)}</button>` : '';
+      const open = it.closed ? `<button class='btn sm primary' data-act='careerSafe' data-v='${it.k}' aria-label='${t('Abrir con el cerrajero')}' ${st.money >= C.locksmith(st) ? '' : 'disabled'}>${ic('🔑', 'ic sm')} ${C.locksmith(st) ? money(C.locksmith(st)) : t('Gratis')}</button>` : '';
       const hint = it.closed ? `<small class='muted'>${t('¿Qué habrá dentro?')}</small>` : def && def.safe && it.out != null ? `<small class='muted'>${ic('🔐', 'ic sm')} ${t('Estaba en la caja fuerte')}</small>` : '';
       return `<li class='${it.closed ? 'safe' : ''}'>${ic(sh ? sh.emoji : '📦', 'ic')}<span class='grow'><b>${esc(sh ? t(sh.name) : it.id)}</b>${setBadge(it.id)}${hint}</span>${open}<button class='btn sm' data-act='careerSell' data-v='${it.k}'>${money(C.sellPrice(st, it))}</button></li>`;
     })
@@ -1176,6 +1182,18 @@ function careerStore(st) {
 function upEffect(key, lv) {
   if (key === 'lupa') return tn(1 + lv, 'Ves {n} caja de cada trastero', 'Ves {n} cajas de cada trastero');
   if (key === 'furgoneta') return t('Caben {n} objetos en el almacén', { n: C.UPGRADES.furgoneta.cap[lv] });
+  if (key === 'contactos') {
+    const off = C.UPGRADES.contactos.off[lv];
+    return off ? t('Los trucos te cuestan un {p} % menos', { p: Math.round(off * 100) }) : t('Los trucos cuestan lo normal');
+  }
+  if (key === 'seguro') {
+    const off = C.UPGRADES.seguro.off[lv];
+    return off >= 1 ? t('Las trampas no te cuestan nada') : off ? t('Las trampas te cuestan un {p} % menos', { p: Math.round(off * 100) }) : t('Las trampas se pagan enteras');
+  }
+  if (key === 'cerrajero') {
+    const fee = C.UPGRADES.cerrajero.price[lv];
+    return fee ? t('Abrir una caja fuerte cuesta {v}', { v: money(fee) }) : t('Abrir cajas fuertes es gratis');
+  }
   const b = C.UPGRADES.tienda.bonus[lv];
   return b ? t('Vendes un {p} % más caro', { p: Math.round(b * 100) }) : t('Vendes al precio normal');
 }
@@ -1186,8 +1204,10 @@ function careerUpgrades(st) {
     const pips = u.costs.map((_, n) => `<i class='${n < i.lv ? 'on' : ''}'></i>`).join('');
     const action = i.max
       ? `<span class='upmax'>${t('Al máximo')}</span>`
-      : i.locked
-        ? `<span class='uplock'>${ic('🔐', 'ic')} ${t('Nivel {n}', { n: i.need })}</span>`
+      : i.zone
+        ? `<span class='uplock'>${ic('🔐', 'ic')} ${t('Se abre en el Puerto')}</span>`
+        : i.locked
+          ? `<span class='uplock'>${ic('🔐', 'ic')} ${t('Nivel {n}', { n: i.need })}</span>`
         : `<button class='btn sm${i.afford ? ' primary' : ''}' data-act='careerUp' data-v='${k}' ${i.afford ? '' : 'disabled'}>${money(i.cost)}</button>`;
     return `<div class='upcard'>${ic(u.emoji, 'ic up-ic')}
       <div class='grow'><b class='display'>${t(u.name)}</b><span class='pips'>${pips}</span>
@@ -1263,7 +1283,10 @@ function careerEnd(v) {
 function albumHTML() {
   const a = A.load();
   const n = A.have(a);
+  const zones = C.load().zones;
   const groups = A.GROUPS.map((g) => {
+    if (g.zone && !zones[g.zone])
+      return `<section class='al-g locked'><div class='row al-h'>${ic(g.emoji, 'ic')}<b class='grow'>${esc(t(g.name))} <small>${g.items.length}</small></b><span class='al-rw'>${ic('🔐', 'ic')} ${t('Se abre en el Puerto')}</span></div></section>`;
     const got = g.items.filter((id) => a.found[id]).length;
     const done = got === g.items.length;
     const status = a.claimed[g.id]
@@ -1364,8 +1387,8 @@ function startCareerDay() {
   const state = E.createRoom({ code: genCode(), hostId: myId, hostName: sget('tr-name', '') || 'Tú', seed: crypto.getRandomValues(new Uint32Array(1))[0], now, speed: SPEED });
   E.act(state, myId, { type: 'setLook', look: myLook() }, now);
   // si al álbum le faltan pocos objetos, esos salen más a menudo en las subastas del día
-  const miss = A.missing(A.load());
-  E.setupCareer(state, { zone: st.zone, money: st.money, lupa: st.up.lupa, wanted: miss.length <= E.WANTED_MAX ? miss : [] });
+  const miss = A.missing(A.load(), st.zone);
+  E.setupCareer(state, { zone: st.zone, money: st.money, lupa: st.up.lupa, trickOff: C.trickOff(st), trapOff: C.trapOff(st), wanted: miss.length <= E.WANTED_MAX ? miss : [] });
   const r = E.act(state, myId, { type: 'start' }, now);
   if (!r.ok) return toast(t('No se ha podido hacer.'));
   startHosting(state);
@@ -1632,7 +1655,9 @@ const noteText = (n) =>
             : t('Caja fuerte abierta: {item}', { item: t(SAFE_CONTENTS[n.out].name) })
           : n && n.k === 'safeClosed'
             ? t('La caja fuerte va cerrada a tu almacén: allí la abres o la vendes.')
-            : n && n.k === 'sinDinero'
+            : n && n.k === 'seguro'
+              ? t('Tu seguro cubre {v} de las trampas.', { v: money(n.saved) })
+              : n && n.k === 'sinDinero'
               ? n.paid > 0
                 ? t('No quedaba dinero para las trampas: solo se pagan {a} de {b}.', { a: money(n.paid), b: money(n.owed) })
                 : t('No quedaba dinero para las trampas: no se paga nada de los {b}.', { b: money(n.owed) })
@@ -1655,9 +1680,11 @@ function setsOf(v) {
   const me = v.players.find((p) => p.id === myId);
   return (me && me.sets) || {};
 }
+// en competitivo y cooperativo solo salen las colecciones de siempre (las del Puerto son de Rey de las subastas)
+const GAME_SETS = COLLECTIONS.filter((c) => !c.zone);
 function setsRow(v) {
   const has = setsOf(v);
-  const chips = COLLECTIONS.map((c) => {
+  const chips = GAME_SETS.map((c) => {
     const n = has[c.id] || 0;
     return `<span class='setc${n >= SET_NEED ? ' done' : n ? ' some' : ''}'>${ic(c.emoji)}<b>${n >= SET_NEED ? n + '✓' : n + '/' + SET_NEED}</b></span>`;
   }).join('');
@@ -1671,7 +1698,7 @@ const setsSheet = () => {
   return `<div class='rules'>
   <div class='row'><h2 class='grow'>${t('Colecciones')}</h2><button class='iconbtn' data-act='close' aria-label='${t('Cerrar')}'>✕</button></div>
   <p class='muted small' style='margin-top:6px'>${t('Junta {n} objetos de la misma colección y cobras {v} al momento. Cada pieza más, {x}.', { n: SET_NEED, v: money(SET_BONUS), x: money(SET_EXTRA) })}</p>
-  ${COLLECTIONS.map(
+  ${GAME_SETS.map(
     (c) => `<h3>${ic(c.emoji)} ${t(c.name)} <small class='muted'>${has[c.id] || 0}/${SET_NEED}</small></h3>
     <p class='setitems'>${c.items.map((id) => `<span class='${own.has(id) ? 'own' : ''}'>${ic(ITEM[id].emoji)} ${esc(t(ITEM[id].name))}</span>`).join('')}</p>`,
   ).join('')}
@@ -3207,7 +3234,7 @@ function handle(act, el) {
       if (C.buyUpgrade(st, val)) {
         C.save(st);
         sfx.gain();
-        toast(t('{name} mejorada.', { name: t(C.UPGRADES[val].name) }));
+        toast(t('Mejora comprada: {name}.', { name: t(C.UPGRADES[val].name) }));
       }
       render();
       return;

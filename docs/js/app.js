@@ -1363,7 +1363,9 @@ function startCareerDay() {
   const now = Date.now();
   const state = E.createRoom({ code: genCode(), hostId: myId, hostName: sget('tr-name', '') || 'Tú', seed: crypto.getRandomValues(new Uint32Array(1))[0], now, speed: SPEED });
   E.act(state, myId, { type: 'setLook', look: myLook() }, now);
-  E.setupCareer(state, { zone: st.zone, money: st.money, lupa: st.up.lupa });
+  // si al álbum le faltan pocos objetos, esos salen más a menudo en las subastas del día
+  const miss = A.missing(A.load());
+  E.setupCareer(state, { zone: st.zone, money: st.money, lupa: st.up.lupa, wanted: miss.length <= E.WANTED_MAX ? miss : [] });
   const r = E.act(state, myId, { type: 'start' }, now);
   if (!r.ok) return toast(t('No se ha podido hacer.'));
   startHosting(state);

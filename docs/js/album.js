@@ -42,6 +42,8 @@ export function record(ids, key) {
   return [...new Set(fresh)];
 }
 
+// lo que falta por encontrar
+export const missing = (a) => GROUPS.flatMap((g) => g.items).filter((id) => !a.found[id]);
 export const have = (a) => GROUPS.reduce((t, g) => t + g.items.filter((id) => a.found[id]).length, 0);
 export const complete = (a, g) => g.items.every((id) => a.found[id]);
 export const claimable = (a) => GROUPS.filter((g) => complete(a, g) && !a.claimed[g.id]);

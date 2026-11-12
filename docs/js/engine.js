@@ -60,11 +60,14 @@ const DAZED_MISS = 0.67;
 const trickCost = (s, id) => Math.round((TRICKS[id].cost * (s.career ? ZONES[s.career.zone].trickMult || 1 : 1)) / 10) * 10;
 
 // prepara una sala de anfitrión para un día de carrera (antes de «start»)
-export function setupCareer(s, { zone, money, lupa = 0 }) {
+// wanted: los pocos objetos que le faltan al jugador en el álbum; salen más a menudo (ver zoneDeck)
+export const WANTED_MAX = 6;
+export const WANTED_EXTRA = 3;
+export function setupCareer(s, { zone, money, lupa = 0, wanted = [] }) {
   if (!ZONES[zone]) throw new Error('zona desconocida: ' + zone);
   s.mode = 'coop';
   s.players = humans(s);
-  s.career = { zone, money: Math.max(0, Math.round(money)), lupa: Math.max(0, Math.min(3, lupa | 0)) };
+  s.career = { zone, money: Math.max(0, Math.round(money)), lupa: Math.max(0, Math.min(3, lupa | 0)), wanted: Array.isArray(wanted) && wanted.length <= WANTED_MAX ? wanted.filter((id) => ITEM[id]) : [] };
   bump(s);
 }
 // mazo de la zona: cada objeto aparece más o menos según su tipo
@@ -72,6 +75,8 @@ function zoneDeck(s) {
   const z = ZONES[s.career.zone];
   const ids = [];
   for (const it of ITEMS) for (let k = Math.round((z.kinds[it.kind] || 0) * 2); k > 0; k--) ids.push(it.id);
+  // cuando al álbum le faltan pocos objetos, esos salen más: si no, los raros (trampas, lotería) podían tardar muchísimo
+  for (const id of s.career.wanted || []) for (let k = 0; k < WANTED_EXTRA; k++) ids.push(id);
   return shuffle(s, ids);
 }
 

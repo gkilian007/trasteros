@@ -4798,6 +4798,57 @@ p {
   }
 }
 
+/* en el Puerto hay cinco trucos: el icono va encima del precio para que quepan en una fila */
+.tricks {
+  grid-template-columns: auto repeat(var(--tn, 3), 1fr);
+}
+.tricks.many {
+  gap: 5px;
+}
+.tricks.many .trhelp span {
+  display: none;
+}
+.tricks.many .trick {
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 2px;
+  min-width: 0;
+}
+.tricks.many .trick small {
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+/* marca del rumor sobre el rival: se queda quieta toda la subasta */
+.dzi.mark {
+  animation: none;
+}
+.dzi.mark .ic {
+  width: 22px;
+  height: 22px;
+}
+/* turbo: el reloj lleva un rayo y late deprisa lo que queda de subasta */
+.paddle.turbo {
+  animation: turbobeat 0.45s ease-in-out infinite alternate;
+}
+.paddle.turbo.bump {
+  animation: bump 0.3s ease;
+}
+@keyframes turbobeat {
+  to {
+    box-shadow: inset 0 -5px 0 var(--paddle-2), 0 0 0 4px rgba(255, 221, 87, 0.55);
+  }
+}
+.turbomark {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  z-index: 2;
+}
+.turbomark .ic {
+  width: 26px;
+  height: 26px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
 /* animaciones de los trucos, sobre el trastero y las fichas */
 .trbanner {
   position: absolute;
@@ -5097,4 +5148,110 @@ a.btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+/* rumor: una nube verdosa sube por el trastero con pescados */
+.trickfx.rumor u {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 100%, rgba(120, 170, 60, 0.55), rgba(120, 170, 60, 0) 70%);
+  animation: rumorfog 2.6s ease-out both;
+}
+@keyframes rumorfog {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.trickfx.rumor i {
+  position: absolute;
+  bottom: -20%;
+  width: var(--s);
+  height: var(--s);
+  margin-left: calc(var(--s) / -2);
+  opacity: 0;
+  animation: rumorup 1.7s ease-out both;
+}
+.trickfx.rumor .puff {
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(190, 220, 110, 0.85), rgba(110, 150, 50, 0.5) 60%, rgba(110, 150, 50, 0) 72%);
+}
+.trickfx.rumor .fish .ic {
+  width: 100%;
+  height: 100%;
+  filter: hue-rotate(-100deg) saturate(0.8) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+}
+@keyframes rumorup {
+  0% {
+    transform: translateY(0) rotate(-12deg) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-320%) rotate(14deg) scale(1.15);
+    opacity: 0;
+  }
+}
+/* turbo: fogonazo amarillo y rayos */
+.trickfx.turbo u {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 240, 150, 0.85), rgba(255, 221, 87, 0) 75%);
+  animation: turboflash 0.9s ease-out both;
+}
+@keyframes turboflash {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.25;
+  }
+  45% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.trickfx.turbo .bolt {
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  opacity: 0;
+  animation: turbobolt 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.trickfx.turbo .bolt .ic {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 10px rgba(255, 230, 100, 0.9));
+}
+@keyframes turbobolt {
+  0% {
+    transform: scale(0.2) rotate(-20deg);
+    opacity: 0;
+  }
+  35% {
+    transform: scale(1.15) rotate(6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9) translateY(30%);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paddle.turbo {
+    animation: none;
+  }
 }

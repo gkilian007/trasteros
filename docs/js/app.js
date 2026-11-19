@@ -691,7 +691,7 @@ function effects(prev, v) {
   if (tr && (!ptr || ptr.n !== tr.n)) {
     // con animación: sale sobre el trastero, en la misma pantalla de pujas; sin ella, un aviso
     if (!playTrickFx(v, tr, trickToast(v))) toast(trickToast(v), 2600);
-    ({ movil: sfx.phone, famoso: sfx.famous, prisa: sfx.hurry })[tr.id]();
+    ({ movil: sfx.phone, famoso: sfx.famous, prisa: sfx.hurry, rumor: sfx.rumor, turbo: sfx.turbo })[tr.id]();
     if (tr.targets.includes(myKey(v))) buzz([60, 40, 60]);
   }
   if (prev.phase !== v.phase) {
@@ -1850,6 +1850,12 @@ function dzIcon(v, id) {
   const kind = (a.blockedBy && a.blockedBy[id]) || (a.trick ? a.trick.id : '');
   return `<span class='dzi ${kind}'${kind === 'movil' ? ` data-say='${t('¿Diga?')}'` : ''}>${ic(E.TRICKS[kind] ? E.TRICKS[kind].emoji : '💤')}</span>`;
 }
+// marca que se queda toda la subasta sobre el rival que se ha creído el rumor (sigue pujando, pero paga menos)
+function markIcon(v, id) {
+  const a = v.auction;
+  if (v.phase !== 'auction' || !a || !a.marks || a.marks[id] !== 'rumor' || dzIcon(v, id)) return '';
+  return `<span class='dzi mark rumor' title='${t('Se ha creído el rumor: paga menos')}'>${ic('🤢')}</span>`;
+}
 function people(v) {
   if (v.phase === 'intro') return '';
   if (v.mode === 'coop') return coopPeople(v);
@@ -1881,7 +1887,7 @@ function coopPeople(v) {
     .map((r) => {
       const lead = a && v.phase === 'auction' && a.leader === r.id;
       const sc = chipValue(v, r.id, r.money, r.worth);
-      return `<div class='pc ${lead ? 'lead' : ''}${dzIcon(v, r.id) ? ' dz' : ''}' data-pid='${esc(r.id)}' title='${esc(t(r.style))} · ${esc(sc.title)}'>${sc.badge}<div class='av'>${face(r.look, faceOf(v, r.id))}${dzIcon(v, r.id)}</div><div class='nm'>${esc(tname(r.name)).replace(/^(El|La) /, "<span class='art'>$1 </span>")}</div><div class='mn'>${sc.html}</div></div>`;
+      return `<div class='pc ${lead ? 'lead' : ''}${dzIcon(v, r.id) ? ' dz' : ''}' data-pid='${esc(r.id)}' title='${esc(t(r.style))} · ${esc(sc.title)}'>${sc.badge}<div class='av'>${face(r.look, faceOf(v, r.id))}${dzIcon(v, r.id)}${markIcon(v, r.id)}</div><div class='nm'>${esc(tname(r.name)).replace(/^(El|La) /, "<span class='art'>$1 </span>")}</div><div class='mn'>${sc.html}</div></div>`;
     })
     .join('');
   const teamLead = a && v.phase === 'auction' && a.leader === 'team';
@@ -1967,6 +1973,8 @@ const TRICK_DESC = {
   movil: () => t('Le suena el móvil a tu rival más peligroso: {n} segundos sin poder pujar.', { n: E.TRICKS.movil.ms / 1000 }),
   famoso: () => t('Pasa un famoso y todos tus rivales se giran a mirar: {n} segundos sin pujar, y más de uno tarda en centrarse.', { n: E.TRICKS.famoso.ms / 1000 }),
   prisa: () => t('Metes prisa al subastador: la cuenta atrás se queda en la mitad. Solo cuando vas ganando.'),
+  rumor: () => t('Haces correr que dentro huele a pescado podrido: en esta subasta tus rivales pagan hasta un {n} % menos.', { n: Math.round(E.TRICKS.rumor.cut[1] * 100) }),
+  turbo: () => t('El reloj corre al doble de velocidad lo que queda de subasta, vayas ganando o no. Al rival que se lo piensa mucho no le da tiempo a pujar.'),
 };
 // si estoy distraído por un truco: cuál y cuánto me queda
 function myDistraction(v) {
@@ -1984,16 +1992,17 @@ function tricksRow(v) {
   const spare = myMoney(v) - (a.leader === key ? a.amount : 0); // lo ya pujado no se puede gastar en trucos
   const busy = app.trickUntil > performance.now();
   const dz = myDistraction(v);
-  const btns = E.TRICK_ORDER.map((id) => {
+  const ids = E.TRICK_ORDER.filter((id) => id in v.tricks.cost);
+  const btns = ids.map((id) => {
     const T = E.TRICKS[id];
     const cost = v.tricks.cost[id];
     const off = used[id] || busy || dz || spare < cost || (id === 'prisa' && a.leader !== key);
     return `<button class='trick${used[id] ? ' used' : ''}' data-act='trick' data-v='${id}' aria-label='${t(T.name)}: ${TRICK_DESC[id]()}' ${off ? 'disabled' : ''}>${ic(T.emoji)}<small>${used[id] ? '✓' : money(cost)}</small></button>`;
   }).join('');
-  return `<div class='tricks'><button class='trhelp' data-act='trickHelp' aria-label='${t('Qué hacen los trucos')}'><span>${t('Trucos')}</span><i>?</i></button>${btns}</div>`;
+  return `<div class='tricks${ids.length > 3 ? ' many' : ''}' style='--tn:${ids.length}'><button class='trhelp' data-act='trickHelp' aria-label='${t('Qué hacen los trucos')}'><span>${t('Trucos')}</span><i>?</i></button>${btns}</div>`;
 }
 function tricksHelp(v) {
-  const rows = E.TRICK_ORDER.map((id) => `<li>${ic(E.TRICKS[id].emoji)}<span><b>${t(E.TRICKS[id].name)} · ${money(v && v.tricks ? v.tricks.cost[id] : E.TRICKS[id].cost)}</b><small>${TRICK_DESC[id]()}</small></span></li>`).join('');
+  const rows = E.TRICK_ORDER.filter((id) => (v && v.tricks ? id in v.tricks.cost : !E.TRICKS[id].zone)).map((id) => `<li>${ic(E.TRICKS[id].emoji)}<span><b>${t(E.TRICKS[id].name)} · ${money(v && v.tricks ? v.tricks.cost[id] : E.TRICKS[id].cost)}</b><small>${TRICK_DESC[id]()}</small></span></li>`).join('');
   return `<div class='stack'><div class='row'><h2 class='grow'>${t('Trucos')}</h2><button class='iconbtn' data-act='close' aria-label='${t('Cerrar')}'>✕</button></div>
     <ul class='trlist'>${rows}</ul>
     <p class='small muted'>${v && v.career ? t('Se pagan al momento con tu dinero. Cada truco, una vez al día.') : t('Se pagan al momento con tu dinero. Cada truco, una vez por partida.')}</p></div>`;
@@ -2083,6 +2092,33 @@ function fxMovil(v, tr) {
   anim.onfinish = done;
   setTimeout(() => fly.isConnected && done(), 700);
 }
+// Rumor: una nube verde con pescados sube por el trastero y los rivales arrugan la nariz
+function fxRumor(v, tr) {
+  const wrap = root.querySelector('.stagewrap');
+  if (!wrap) return;
+  wrap.querySelectorAll('.trickfx').forEach((e) => e.remove());
+  const fx = document.createElement('div');
+  fx.className = 'trickfx rumor';
+  // [izquierda %, tamaño px, retraso s, pescado o nube]
+  const bits = [[12, 44, 0, 1], [30, 70, 0.15, 0], [50, 40, 0.3, 1], [68, 78, 0.1, 0], [86, 42, 0.45, 1], [22, 60, 0.55, 0], [58, 64, 0.7, 0], [78, 38, 0.85, 1], [40, 46, 1.0, 1]];
+  fx.innerHTML = `<u></u>` + bits.map(([x, sz, d, fish]) => `<i class='${fish ? 'fish' : 'puff'}' style='left:${x}%;--s:${sz}px;animation-delay:${d}s'>${fish ? ic('🐟') : ''}</i>`).join('');
+  wrap.appendChild(fx);
+  setTimeout(() => fx.remove(), 2700);
+  for (const k of tr.targets || []) shake([...root.querySelectorAll('.pc[data-pid]')].find((e) => e.dataset.pid === k), 700, 4);
+}
+// Turbo: un fogonazo y rayos sobre el trastero; el reloj tiembla y se queda acelerado
+function fxTurbo() {
+  const wrap = root.querySelector('.stagewrap');
+  if (!wrap) return;
+  wrap.querySelectorAll('.trickfx').forEach((e) => e.remove());
+  const fx = document.createElement('div');
+  fx.className = 'trickfx turbo';
+  const bolts = [[18, 20, 86, 0], [72, 14, 110, 0.12], [44, 44, 70, 0.3], [86, 56, 64, 0.45], [10, 60, 76, 0.6]];
+  fx.innerHTML = `<u></u>` + bolts.map(([x, y, sz, d]) => `<i class='bolt' style='left:${x}%;top:${y}%;--s:${sz}px;animation-delay:${d}s'>${ic('⚡')}</i>`).join('');
+  wrap.appendChild(fx);
+  setTimeout(() => fx.remove(), 1500);
+  shake(root.querySelector('[data-paddle]'), 700, 12);
+}
 function fxPrisa() {
   shake(root.querySelector('.stagewrap .auct'), 900, 5);
   const coin = root.querySelector('[data-paddle]');
@@ -2107,6 +2143,8 @@ function playTrickFx(v, tr, caption) {
   setTimeout(() => {
     if (tr.id === 'famoso') fxFamoso();
     else if (tr.id === 'movil') fxMovil(v, tr);
+    else if (tr.id === 'rumor') fxRumor(v, tr);
+    else if (tr.id === 'turbo') fxTurbo();
     else fxPrisa();
   }, 60);
   return true;
@@ -2127,6 +2165,8 @@ function trickToast(v) {
   const em = E.TRICKS[tr.id].emoji;
   if (tr.id === 'movil') return hitMe ? `${em} ${t('¡Te suena el móvil!')}` : `${em} ${t('A {name} le suena el móvil', { name: names[0] || '' })}`;
   if (tr.id === 'famoso') return hitMe ? `${em} ${t('¡Pasa un famoso! Te quedas mirando…')}` : mine ? `${em} ${t('¡Pasa un famoso! Tus rivales se despistan')}` : `${em} ${t('¡Pasa un famoso! {name} aprovecha', { name: who })}`;
+  if (tr.id === 'rumor') return mine ? `${em} ${t('¡Corre el rumor! Tus rivales pagarán menos')}` : `${em} ${t('{name} hace correr un rumor: huele a pescado podrido', { name: who })}`;
+  if (tr.id === 'turbo') return mine ? `${em} ${t('¡Turbo! El reloj corre el doble')}` : `${em} ${t('{name} pone el turbo: ¡el reloj corre el doble!', { name: who })}`;
   return mine ? `${em} ${t('¡Metes prisa! La cuenta atrás, a la mitad')}` : `${em} ${t('{name} mete prisa: ¡la cuenta atrás, a la mitad!', { name: who })}`;
 }
 
@@ -2279,7 +2319,7 @@ function auctionPanel(v, auct, meAuct) {
       }</p>${tricksRow(v)}${appraiseBtn(v)}${v.mode === 'versus' ? mySeenLine(v, true) : ''}`;
   }
   return `<div class='panel stack'>
-    <div class='price'><div class='paddle coin' data-paddle><svg class='ring' viewBox='0 0 100 100' aria-hidden='true'><circle class='trk' cx='50' cy='50' r='47'/><circle class='rng' data-ring cx='50' cy='50' r='47' pathLength='100'/></svg><div><span class='display'>${money(a.leader ? a.amount : a.opening)}</span><small>${a.leader ? t('puja') : t('salida')}</small></div></div>
+    <div class='price'><div class='paddle coin${a.fast > 1 ? ' turbo' : ''}' data-paddle>${a.fast > 1 ? `<i class='turbomark' title='${t('Turbo: el reloj corre el doble')}'>${ic('⚡')}</i>` : ''}<svg class='ring' viewBox='0 0 100 100' aria-hidden='true'><circle class='trk' cx='50' cy='50' r='47'/><circle class='rng' data-ring cx='50' cy='50' r='47' pathLength='100'/></svg><div><span class='display'>${money(a.leader ? a.amount : a.opening)}</span><small>${a.leader ? t('puja') : t('salida')}</small></div></div>
     ${leaderFace(v)}<div class='who'>${leaderTxt}<ul class='history'>${hist}</ul></div></div>
     ${buttons}
   </div>`;
@@ -2991,7 +3031,7 @@ const rules = () => `
   <h3>${ic('📱')} ${t('Trucos')}</h3>
   <ul>
     <li>${t('En plena subasta puedes pagar un truco para distraer a tus rivales. Cada uno se usa una vez por partida.')}</li>
-    ${E.TRICK_ORDER.map((id) => `<li><b>${t(E.TRICKS[id].name)} (${money(E.TRICKS[id].cost)})</b>: ${TRICK_DESC[id]()}</li>`).join('')}
+    ${E.TRICK_ORDER.map((id) => `<li><b>${t(E.TRICKS[id].name)} (${money(E.TRICKS[id].cost * (E.TRICKS[id].zone ? E.ZONES[E.TRICKS[id].zone].trickMult : 1))})</b>${E.TRICKS[id].zone ? ` · ${t('solo en el Puerto de Rey de las subastas')}` : ''}: ${TRICK_DESC[id]()}</li>`).join('')}
   </ul>
   <h3>${ic('🏆')} ${t('Rey de las subastas (tú solo)')}</h3>
   <ul>

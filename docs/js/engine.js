@@ -54,9 +54,16 @@ export const TRICKS = {
   movil: { name: 'Llamada', emoji: '📱', cost: 40, ms: 10000 }, // a un rival le suena el móvil: no puja
   famoso: { name: 'Famoso', emoji: '🤩', cost: 70, ms: 4000 }, // pasa un famoso: nadie más puja y vuelven despistados
   prisa: { name: 'Prisa', emoji: '⏱️', cost: 30 }, // el reloj se corta a la mitad (solo si vas ganando)
+  // Los del Puerto (solo en Rey de las subastas, desde esa zona): no frenan a nadie un rato, cambian la subasta entera
+  rumor: { name: 'Rumor', emoji: '🐟', cost: 60, zone: 'puerto', cut: [0.15, 0.25], ms: 2600 }, // corre que huele a pescado podrido: los rivales pagan menos
+  turbo: { name: 'Turbo', emoji: '⚡', cost: 50, zone: 'puerto', fast: 2, ms: 2600 }, // el reloj corre el doble lo que queda de subasta
 };
-export const TRICK_ORDER = ['movil', 'famoso', 'prisa'];
+export const TRICK_ORDER = ['movil', 'famoso', 'prisa', 'rumor', 'turbo'];
 const DAZED_MISS = 0.67;
+const TURBO_MISS = 0.5; // con el turbo, al rival que se lo piensa demasiado no le da tiempo una de cada dos veces
+// los trucos que hay en esta partida: los de siempre y, en la carrera, los de la zona
+const hasTrick = (s, id) => !!TRICKS[id] && (!TRICKS[id].zone || (!!s.career && inZone(TRICKS[id], s.career.zone)));
+export const tricksOf = (s) => TRICK_ORDER.filter((id) => hasTrick(s, id));
 const trickCost = (s, id) => Math.round((TRICKS[id].cost * (s.career ? (ZONES[s.career.zone].trickMult || 1) * (1 - (s.career.trickOff || 0)) : 1)) / 10) * 10;
 
 // prepara una sala de anfitrión para un día de carrera (antes de «start»)
@@ -562,6 +569,8 @@ function pickSpecial(s) {
 }
 const isFlash = (s) => !!(s.unit && s.unit.special === 'relampago');
 const extendKey = (s) => (isFlash(s) ? 'flashExtend' : 'bidExtend');
+// lo que deja cada puja para contestar (la mitad si alguien ha usado el Turbo en esta subasta)
+const extendMs = (s) => Math.round(dur(s, extendKey(s)) / ((s.auction && s.auction.fast) || 1));
 
 function startRound(s, now) {
   s.round++;
@@ -767,8 +776,8 @@ export function placeBid(s, key, amount, now, byPlayer = null) {
   if (a.history.length > 6) a.history.length = 6;
   // cada puja deja siempre 6 s para contestar: sin tope de tiempo, nadie se queda sin poder responder
   // a una puja de última hora (la subasta acaba cuando pasan 6 s sin que nadie suba)
-  s.endsAt = Math.max(s.endsAt, now + dur(s, extendKey(s)));
-  s.phaseDur = dur(s, extendKey(s));
+  s.endsAt = Math.max(s.endsAt, now + extendMs(s));
+  s.phaseDur = extendMs(s);
   // los bots reaccionan
   for (const k in a.plans) a.plans[k].nextAt = null;
   if (key === 'team') {
@@ -777,7 +786,7 @@ export function placeBid(s, key, amount, now, byPlayer = null) {
     const plan = t && a.plans[t.id];
     // en la carrera depende de la zona: en el barrio apenas te persigue, en el puerto va a por todas
     const [sp, sc] = s.career ? ZONES[s.career.zone].shark : [0.55, 1.6];
-    if (plan && rand(s) < sp) {
+    if (plan && !a.rumor && rand(s) < sp) {
       const ceiling = r10(Math.max(publicEstimate(s), estimateFor(s, t.id)) * sc);
       plan.max = Math.min(ceiling, Math.max(plan.max, r10(amount + between(s, 10, 80))));
       setFace(s, t.id, 'codicia');
@@ -795,7 +804,7 @@ function useTrick(s, pid, id, now) {
   const a = s.auction;
   const T = TRICKS[id];
   if (s.phase !== 'auction' || !a) return no('late');
-  if (!T) return no('bad');
+  if (!T || !hasTrick(s, id)) return no('bad');
   if (s.mode === 'versus' && pid === s.auctioneerId) return no('auctioneer');
   const key = s.mode === 'coop' ? 'team' : pid;
   if (isBlocked(a, key, now)) return no('distracted');
@@ -819,7 +828,7 @@ function useTrick(s, pid, id, now) {
   let until;
   if (id === 'prisa') {
     // el reloj se corta a la mitad; a los bots les pilla por sorpresa a uno de cada dos
-    const ms = Math.round(dur(s, extendKey(s)) / 2);
+    const ms = Math.round(extendMs(s) / 2);
     s.endsAt = Math.min(s.endsAt, now + ms);
     s.phaseDur = ms;
     until = s.endsAt;
@@ -834,6 +843,25 @@ function useTrick(s, pid, id, now) {
         targets.push(k);
       }
     }
+  } else if (id === 'rumor') {
+    // nadie deja de pujar: cada rival se cree el rumor a su manera y baja lo que está dispuesto a pagar
+    until = now + Math.round(T.ms / sp);
+    targets = others.filter((k) => a.plans[k]);
+    a.rumor = true; // el Tiburón ya no se fía de vuestras pujas en esta subasta
+    for (const k of targets) {
+      a.plans[k].max = r10(a.plans[k].max * (1 - between(s, T.cut[0] * 100, T.cut[1] * 100) / 100));
+      a.plans[k].nextAt = null;
+    }
+    a.marks = { ...(a.marks || {}), ...Object.fromEntries(targets.map((k) => [k, id])) };
+  } else if (id === 'turbo') {
+    // lo que queda de reloj se queda en la mitad, y cada puja ya solo deja la mitad de tiempo para contestar
+    until = now + Math.round(T.ms / sp);
+    a.fast = T.fast;
+    const left = Math.max(0, Math.round((s.endsAt - now) / T.fast));
+    s.endsAt = now + left;
+    s.phaseDur = left;
+    targets = [];
+    for (const k in a.plans) a.plans[k].nextAt = null;
   } else {
     until = now + Math.round(T.ms / sp);
     if (id === 'famoso') targets = others;
@@ -856,7 +884,7 @@ function useTrick(s, pid, id, now) {
       }
     }
   }
-  for (const k of targets) setFace(s, k, 'sorpresa');
+  for (const k of targets) setFace(s, k, id === 'rumor' ? (rand(s) < 0.5 ? 'nervios' : 'triste') : 'sorpresa');
   a.trickN = (a.trickN || 0) + 1;
   a.trick = { id, by: key, byName: nameOf(s, key), byPlayer: pid, targets, n: a.trickN, until };
   bump(s);
@@ -907,7 +935,19 @@ function runBots(s, now) {
       }
       delay /= sp;
       if (a.lastAt != null && now + delay < a.lastAt + 1200 / sp) delay = a.lastAt + 1200 / sp - now + between(s, 0, 500) / sp;
-      if (delay > remaining - 500 / sp) delay = Math.max(50, remaining - between(s, 500, 1400) / sp);
+      if (delay > remaining - 500 / sp) {
+        if (a.fast && rand(s) < TURBO_MISS) {
+          // con el turbo no le da tiempo a decidirse: se queda sin pujar en esta cuenta atrás
+          if (!a.blocked) a.blocked = {};
+          if (!a.blockedBy) a.blockedBy = {};
+          a.blocked[k] = s.endsAt;
+          a.blockedBy[k] = 'turbo';
+          setFace(s, k, 'nervios');
+          bump(s);
+          continue;
+        }
+        delay = Math.max(50, remaining - between(s, 500, 1400) / sp);
+      }
       plan.nextAt = now + delay;
       continue;
     }
@@ -1278,9 +1318,11 @@ export function publicView(s, now) {
       trick: s.auction.trick ? { id: s.auction.trick.id, by: s.auction.trick.by, byName: s.auction.trick.byName, byPlayer: s.auction.trick.byPlayer, targets: s.auction.trick.targets, n: s.auction.trick.n, rem: Math.max(0, s.auction.trick.until - vnow) } : null,
       blocked: Object.fromEntries(Object.entries(s.auction.blocked || {}).filter(([, u]) => u > vnow).map(([k, u]) => [k, u - vnow])),
       blockedBy: s.auction.blockedBy || {},
+      marks: s.auction.marks || {}, // rivales tocados por un truco que dura toda la subasta (el rumor)
+      fast: s.auction.fast || 1,
     },
     // trucos: lo que cuesta cada uno y cuáles ha gastado ya cada jugador (o el equipo)
-    tricks: { cost: Object.fromEntries(TRICK_ORDER.map((id) => [id, trickCost(s, id)])), used: s.tricks || {} },
+    tricks: { cost: Object.fromEntries(tricksOf(s).map((id) => [id, trickCost(s, id)])), used: s.tricks || {} },
     signals: s.mode === 'coop' ? s.signals : null,
     results: s.results,
     final: s.final,

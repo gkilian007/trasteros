@@ -135,6 +135,18 @@ export const sfx = {
       tone(988, 0.06, { type: 'square', vol: 0.06, when: w + 0.065 });
     });
   },
+  // rumor: cuchicheo («bisbís») que va de uno a otro y un «puaj» que baja
+  rumor: () => {
+    [0, 0.09, 0.18, 0.34, 0.43, 0.52].forEach((w, i) => tone(i % 2 ? 250 : 310, 0.06, { type: 'triangle', vol: 0.07, when: w, to: i % 2 ? 210 : 270 }));
+    tone(520, 0.55, { type: 'sine', vol: 0.07, to: 170, when: 0.72 });
+    tone(390, 0.55, { type: 'triangle', vol: 0.04, to: 130, when: 0.74 });
+  },
+  // turbo: un silbido que sube, como un motor que coge vueltas, y un tic-tac rapidísimo
+  turbo: () => {
+    tone(180, 0.45, { type: 'sawtooth', vol: 0.045, to: 1500 });
+    tone(360, 0.45, { type: 'sine', vol: 0.05, to: 2400, when: 0.02 });
+    [0.5, 0.58, 0.66, 0.74, 0.82, 0.9, 0.98, 1.06].forEach((w, i) => tone(i % 2 ? 1750 : 1150, 0.035, { type: 'triangle', vol: 0.1, when: w }));
+  },
   // trastero especial: un toque de aviso
   special: () => [784, 988, 1319, 1568].forEach((f, i) => tone(f, 0.09, { type: 'sine', vol: 0.06, when: i * 0.06 })),
     // reloj de los últimos segundos de la subasta: tic (agudo) y tac (grave), como de madera

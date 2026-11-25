@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang='es'>
+  <head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1, viewport-fit=cover' />
+    <meta name='theme-color' content='#1b2433' />
+    <title>Trasteros · Cupones y ofertas</title>
+    <meta name='description' content='Cómo funcionan los cupones de descuento que se ganan jugando a Trasteros y qué ofertas hay ahora.' />
+    <link rel='icon' href='icons/icon.svg' type='image/svg+xml' />
+    <style>
+      :root { color-scheme: dark; }
+      body { margin: 0; background: #1b2433; color: #f1ede4; font: 16px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      main { max-width: 720px; margin: 0 auto; padding: 20px 18px 60px; }
+      h1 { font-size: 1.5rem; margin: 8px 0 4px; }
+      h2 { font-size: 1.1rem; margin: 26px 0 6px; color: #ffc31f; }
+      p, li { color: #dfe4ec; overflow-wrap: anywhere; }
+      ul { padding-left: 20px; }
+      a { color: #ffc31f; }
+      .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .top a.back { margin-right: auto; }
+      .lang button { background: #222d3f; color: #f1ede4; border: 0; border-radius: 8px; padding: 6px 12px; font: inherit; font-weight: 700; }
+      .lang button[aria-pressed='true'] { background: #ffc31f; color: #2a1d00; }
+      .muted { color: #a6b1c2; font-size: 0.9rem; }
+      .offer { background: #222d3f; border-radius: 14px; padding: 14px 16px; margin: 12px 0; }
+      .offer h3 { margin: 0 0 4px; font-size: 1.05rem; }
+      .offer .shop { color: #ffc31f; font-weight: 700; font-size: 0.9rem; }
+      .offer code { display: inline-block; background: #101826; border: 1px dashed #ffc31f; border-radius: 8px; padding: 4px 10px; font-size: 1rem; margin: 6px 0; }
+      .offer a.go { display: inline-block; margin-top: 6px; background: #ffc31f; color: #2a1d00; font-weight: 800; text-decoration: none; border-radius: 10px; padding: 8px 14px; }
+      .steps li { margin: 6px 0; }
+      html.js [data-lang] { display: none; }
+      html.js.es [data-lang='es'], html.js.en [data-lang='en'] { display: block; }
+    </style>
+    <script>
+      (function () {
+        var l = (new URLSearchParams(location.search).get('lang') || '').toLowerCase();
+        if (l !== 'es' && l !== 'en') { try { l = localStorage.getItem('tr-lang'); } catch (e) {} }
+        if (l !== 'es' && l !== 'en') l = (navigator.language || 'es').slice(0, 2) === 'es' ? 'es' : 'en';
+        document.documentElement.className = 'js ' + l;
+        document.documentElement.lang = l;
+        window.setLegalLang = function (x) { document.documentElement.className = 'js ' + x; document.documentElement.lang = x; document.querySelectorAll('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.l === x)); }); };
+        document.addEventListener('DOMContentLoaded', function () { window.setLegalLang(l); });
+      })();
+    </script>
+  </head>
+  <body>
+    <main>
+      <div class='top'>
+        <a class='back' href='./'>← Trasteros</a>
+        <div class='lang' role='group' aria-label='Idioma / Language'>
+          <button data-l='es' onclick="setLegalLang('es')">ES</button>
+          <button data-l='en' onclick="setLegalLang('en')">EN</button>
+        </div>
+      </div>
+
+            <article data-lang='es' lang='es'>
+        <h1>Cupones y ofertas</h1>
+        <p class='muted'>Publicidad · Trasteros puede recibir una comisión si compras con uno de estos códigos o enlaces.</p>
+
+        <h2>Cómo funcionan</h2>
+        <ul class='steps'>
+          <li><strong>Se ganan jugando.</strong> Al ganar una partida o cerrar un buen día en Rey de las subastas puede tocarte un cupón de descuento de una tienda real. Como mucho, uno al día.</li>
+          <li><strong>Son gratis.</strong> No hay que pagar ni comprar nada para conseguirlos, y el dinero del juego es ficticio.</li>
+          <li><strong>Se guardan en «Mis cupones».</strong> Cada cupón enseña la tienda, el descuento, el código, las condiciones y la fecha en que caduca, con un botón para ir a la web oficial de la tienda.</li>
+          <li><strong>Solo códigos autorizados.</strong> Mostramos los códigos y las condiciones tal como los publica cada marca a través de su red de afiliación. No inventamos códigos ni usamos cupones caducados.</li>
+        </ul>
+
+        <h2>Ofertas que puedes ganar ahora</h2>
+        <div class='offers' data-empty='Ahora mismo no hay cupones activos: estamos incorporando marcas. Vuelve pronto.' data-code='Código' data-go='Ir a la tienda' data-until='Hasta el'></div>
+
+        <h2>Para marcas y redes de afiliación</h2>
+        <p>Trasteros es un juego gratuito de subastas de trasteros para móvil, en español e inglés, para mayores de 14 años. Los cupones son un premio dentro del juego: no hacemos cashback ni pagamos por comprar, no enviamos correos, no pujamos por marcas en buscadores y no usamos ventanas emergentes. Los cupones se muestran solo a quien juega en español, porque las ofertas son para España.</p>
+        <p>Si quieres que tu marca aparezca, escríbenos a <a href='mailto:magic@melodyforme.com'>magic@melodyforme.com</a>.</p>
+
+        <p class='muted'>Más detalles en <a href='legal.html?lang=es'>Privacidad y aviso legal</a>. Trasteros es un juego de De Soto Creations LLC.</p>
+      </article>
+
+      <article data-lang='en' lang='en'>
+        <h1>Coupons and offers</h1>
+        <p class='muted'>Advertising · Trasteros may earn a commission if you buy with one of these codes or links.</p>
+
+        <h2>How they work</h2>
+        <ul class='steps'>
+          <li><strong>You win them by playing.</strong> When you win a game or close a good day in Auction King, you may get a discount coupon from a real shop. One a day at most.</li>
+          <li><strong>They are free.</strong> You never have to pay or buy anything to get them, and the money in the game is fictional.</li>
+          <li><strong>They are kept in "My coupons".</strong> Each coupon shows the shop, the discount, the code, the conditions and the expiry date, with a button to go to the shop's official website.</li>
+          <li><strong>Authorized codes only.</strong> We show codes and conditions exactly as each brand publishes them through its affiliate network. We do not make up codes or use expired coupons.</li>
+        </ul>
+
+        <h2>Offers you can win right now</h2>
+        <div class='offers' data-empty='There are no active coupons right now: we are adding brands. Come back soon. (Offers are for Spain and are shown to people playing in Spanish.)' data-code='Code' data-go='Go to the shop' data-until='Until'></div>
+
+        <h2>For brands and affiliate networks</h2>
+        <p>Trasteros is a free storage-auction game for mobile, in Spanish and English, for players aged 14 and over. Coupons are an in-game prize: we do not offer cashback or pay people to buy, we send no emails, we do not bid on brand terms in search engines and we use no pop-ups. Coupons are shown only to people playing in Spanish, because the offers are for Spain.</p>
+        <p>If you would like your brand to appear, write to <a href='mailto:magic@melodyforme.com'>magic@melodyforme.com</a>.</p>
+
+        <p class='muted'>More details in <a href='legal.html?lang=en'>Privacy and legal notice</a>. Trasteros is a game by De Soto Creations LLC.</p>
+      </article>
+    </main>
+    <script>
+      // Enseña las ofertas vigentes de coupons.json (las mismas que reparte el juego)
+      (function () {
+        var esc = function (x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        var draw = function (list) {
+          document.querySelectorAll('.offers').forEach(function (box) {
+            var d = box.dataset;
+            if (!list.length) { box.innerHTML = "<p class='muted'>" + esc(d.empty) + '</p>'; return; }
+            box.innerHTML = list.map(function (c) {
+              var url = /^https:\/\//.test(c.url || '') ? c.url : '';
+              var until = c.ends ? new Date(c.ends).toLocaleDateString(document.documentElement.lang === 'en' ? 'en-GB' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+              return "<div class='offer'><div class='shop'>" + esc(c.merchant) + '</div><h3>' + esc(c.title) + '</h3>' + (c.code ? '<div>' + esc(d.code) + ': <code>' + esc(c.code) + '</code></div>' : '') + (c.text ? "<p class='muted'>" + esc(c.text) + '</p>' : '') + (until ? "<p class='muted'>" + esc(d.until) + ' ' + esc(until) + '</p>' : '') + (url ? "<a class='go' rel='sponsored noopener' target='_blank' href='" + esc(url) + "'>" + esc(d.go) + '</a>' : '') + '</div>';
+            }).join('');
+          });
+        };
+        draw([]);
+        fetch('coupons.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+          var now = Date.now();
+          draw((j.coupons || []).filter(function (c) { return c && c.merchant && c.title && /^https:\/\//.test(c.url || '') && new Date(c.ends).getTime() > now; }).slice(0, 6));
+        }).catch(function () {});
+      })();
+    </script>
+  </body>
+</html>

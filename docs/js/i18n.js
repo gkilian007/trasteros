@@ -560,6 +560,7 @@ export const EN = {
   'Nuevo en tu álbum: {item}': 'New in your album: {item}',
   '{n} objetos nuevos en tu álbum': '{n} new items in your album',
   'Tu álbum': 'Your album',
+  'Cupones y ofertas': 'Coupons and offers',
   Rumor: 'Rumor',
   Turbo: 'Turbo',
   'Haces correr que dentro huele a pescado podrido: en esta subasta tus rivales pagan hasta un {n} % menos.': 'You spread the word that it smells of rotten fish in there: in this auction your rivals pay up to {n}% less.',

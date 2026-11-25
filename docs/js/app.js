@@ -1327,7 +1327,7 @@ function couponCard(c) {
     ${old ? '' : `<a class='btn primary block' href='${esc(c.url)}' target='_blank' rel='noopener sponsored'>${t('Ir a la tienda')}</a>`}
   </article>`;
 }
-const LEGAL_LINK = () => `<p class='small center legal-link'><a href='legal.html?lang=${getLang()}' target='_blank' rel='noopener'>${t('Privacidad y aviso legal')}</a></p>`;
+const LEGAL_LINK = () => `<p class='small center legal-link'><a href='legal.html?lang=${getLang()}' target='_blank' rel='noopener'>${t('Privacidad y aviso legal')}</a> · <a href='ofertas.html?lang=${getLang()}' target='_blank' rel='noopener'>${t('Cupones y ofertas')}</a></p>`;
 const COUPON_AD = () => `<p class='small muted cpn-ad'>${t('Publicidad · Trasteros puede recibir una comisión si compras con este código o enlace.')}</p>${LEGAL_LINK()}`;
 function couponWonSheet(c) {
   return `<div class='stack'><div class='row'><h2 class='grow'>${ic('🎁')} ${t('¡Premio! Un cupón de descuento')}</h2><button class='iconbtn' data-act='close' aria-label='${t('Cerrar')}'>✕</button></div>${couponCard(c)}<p class='small muted center'>${t('Guardado en «Mis cupones», en la portada.')}</p>${COUPON_AD()}</div>`;

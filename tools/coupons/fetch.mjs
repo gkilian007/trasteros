@@ -24,13 +24,36 @@ const terms = (v) => {
   const info = clean(v.publisherInformation);
   return /^https:\/\/\S+$/.test(info) && !both.includes(info) ? `${both}${/[.!?]$/.test(both) ? '' : '.'} Condiciones: ${info}` : both;
 };
+// Fecha que la propia marca escribe en el texto («válida hasta el 27 de noviembre de 2026», «Periodos de validez: 07/07/2026 13/07/2026»).
+// A veces la oferta sigue abierta en Tradedoubler cuando su texto ya dice que ha terminado: manda la fecha más temprana.
+const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const DATE = String.raw`(?:\d{1,2}[/.-]\d{1,2}[/.-]\d{4}|\d{1,2} de [a-záéíóú]+ (?:de |del )?\d{4})`;
+const endOfDay = (d, m, y) => (m >= 1 && m <= 12 && d >= 1 && d <= 31 ? Date.UTC(y, m - 1, d, 22, 59) : NaN);
+const toDate = (t) => {
+  const n = t.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
+  if (n) return endOfDay(+n[1], +n[2], +n[3]);
+  const w = t.match(/^(\d{1,2}) de ([a-záéíóú]+) (?:de |del )?(\d{4})$/i);
+  return w ? endOfDay(+w[1], MONTHS.indexOf(w[2].toLowerCase().replace('setiembre', 'septiembre')) + 1, +w[3]) : NaN;
+};
+export function textEnd(text) {
+  let last = Infinity;
+  const re = new RegExp(String.raw`v[aá]lid(?:o|a|os|as|ez)\b([^\d]{0,25})((?:${DATE}[\s,;yal–-]*)+)`, 'gi');
+  for (const m of String(text || '').matchAll(re)) {
+    const dates = (m[2].match(new RegExp(DATE, 'gi')) || []).map(toDate).filter((x) => x > 0);
+    // «válido desde el 1/11/2026» es un comienzo, no un final
+    if (!dates.length || (dates.length === 1 && /desde|a partir/i.test(m[1]))) continue;
+    last = Math.min(last, Math.max(...dates));
+  }
+  return last;
+}
+
 export function toCoupons(items, now = Date.now()) {
   const seen = new Set();
   const perProgram = {};
   const out = [];
   for (const v of [...items].sort((a, b) => when(a.endDate) - when(b.endDate))) {
     const start = when(v.publishStartDate || v.startDate);
-    const end = Math.min(when(v.endDate), when(v.publishEndDate) || Infinity);
+    const end = Math.min(when(v.endDate), when(v.publishEndDate) || Infinity, textEnd(`${clean(v.title)}. ${terms(v)}`));
     if (!TYPES.includes(v.voucherTypeId) || !(end > now + 2 * DAY) || start > now) continue;
     if (v.languageId && v.languageId !== 'es') continue;
     if (!/^https:\/\//.test(v.defaultTrackUri || '') || !v.programName || !v.title) continue;

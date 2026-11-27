@@ -68,11 +68,20 @@ async function main() {
   for (let offset = 0; offset < 1000; offset += 100) {
     const r = await fetch(`${API}/publisher/vouchers?sourceId=${SOURCE}&limit=100&offset=${offset}`, { headers: auth });
     if (!r.ok) throw new Error('No se pueden leer los cupones (HTTP ' + r.status + ')');
-    const page = (await r.json()).items || [];
+    const body = await r.json();
+    const page = Array.isArray(body) ? body : body.items || [];
+    // solo nombres de campos, nunca valores: sirve para ver si la API ha cambiado de forma
+    if (!offset && !page.length) console.log('Cupones: respuesta sin lista de cupones; campos: ' + Object.keys(body || {}).join(', '));
     items.push(...page);
     if (page.length < 100) break;
   }
   const coupons = toCoupons(items);
+  // Si la API no da nada aprovechable, se deja el archivo como está: el juego ya retira solo los caducados
+  if (!coupons.length) {
+    const types = [...new Set(items.map((v) => v.voucherTypeId))].join(', ');
+    console.log(`Cupones: ${items.length} en Tradedoubler y ninguno publicable; no se toca coupons.json` + (items.length ? `. Tipos: ${types}. Campos: ${Object.keys(items[0]).join(', ')}` : ''));
+    return;
+  }
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const same = (f) => existsSync(f) && JSON.stringify(JSON.parse(readFileSync(f, 'utf8')).coupons) === JSON.stringify(coupons);
   // en el repositorio público solo existe docs/; en el del código, también src/

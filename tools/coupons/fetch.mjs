@@ -16,6 +16,14 @@ const when = (s) => Date.parse(String(s || '').replace(/([+-]\d{2})(\d{2})$/, '$
 const clean = (s) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 // De la respuesta de la API a lo que enseña el juego. El texto va tal cual lo da la marca.
+// Condiciones tal como están en Tradedoubler: la descripción corta suele llevar el requisito (compra mínima) que la larga no repite
+const terms = (v) => {
+  const short = clean(v.shortDescription);
+  const long = clean(v.description);
+  const both = !short || long.toLowerCase().includes(short.toLowerCase()) ? long : !long || short.toLowerCase().includes(long.toLowerCase()) ? short : `${short}${/[.!?]$/.test(short) ? '' : '.'} ${long}`;
+  const info = clean(v.publisherInformation);
+  return /^https:\/\/\S+$/.test(info) && !both.includes(info) ? `${both}${/[.!?]$/.test(both) ? '' : '.'} Condiciones: ${info}` : both;
+};
 export function toCoupons(items, now = Date.now()) {
   const seen = new Set();
   const perProgram = {};
@@ -32,7 +40,7 @@ export function toCoupons(items, now = Date.now()) {
     if (seen.has(key) || (perProgram[v.programId] || 0) >= 3) continue;
     seen.add(key);
     perProgram[v.programId] = (perProgram[v.programId] || 0) + 1;
-    out.push({ id: 'td-' + v.voucherId, merchant: clean(v.programName), title: clean(v.title), code, text: clean(v.description || v.shortDescription).slice(0, 700), ends: new Date(end).toISOString(), url: v.defaultTrackUri });
+    out.push({ id: 'td-' + v.voucherId, merchant: clean(v.programName), title: clean(v.title), code, text: terms(v).slice(0, 700), ends: new Date(end).toISOString(), url: v.defaultTrackUri });
     if (out.length >= 60) break;
   }
   return out;
